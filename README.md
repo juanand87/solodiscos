@@ -63,6 +63,34 @@ php artisan schedule:work
 
 El programador revisa cada cinco minutos qué tiendas requieren actualización. Cada tienda tiene un intervalo configurable (48 horas por defecto). Con el equipo apagado no se ejecutan trabajos. En producción se configura el programador con cron y los trabajadores como servicios supervisados.
 
+## GoDaddy y cPanel: extracciones automáticas
+
+En el hosting deben ejecutarse tanto el programador como el trabajador de colas. «Extraer ahora» agrega un trabajo a la cola; si aparece «Esperando al trabajador», el código web funciona pero falta atender esa cola.
+
+Después de actualizar el código desde GitHub, desde la carpeta `app/` puedes atender los pendientes manualmente:
+
+```bash
+php artisan queue:drain
+```
+
+El comando termina cuando no hay trabajos listos o al completar el ciclo de 50 segundos. Ese límite se comprueba **entre trabajos**: una extracción iniciada puede tardar más y termina antes de salir. Un bloqueo del sistema operativo impide que dos ejecuciones de este comando atiendan la cola simultáneamente y se libera incluso si termina PHP. No mantengas además otro `queue:work` manual ejecutándose en paralelo.
+
+En **cPanel → Avanzado → Trabajos de cron**, agrega dos tareas, ambas una vez por minuto (`* * * * *`). Sustituye `USUARIO_CPANEL` y la ruta del proyecto por los valores de tu cuenta. GoDaddy documenta `/usr/local/bin/php` como ruta de PHP para cron; puedes verificar su versión con `/usr/local/bin/php -v` y contrastarla con `php -r 'echo PHP_BINARY, PHP_EOL;'` en Terminal.
+
+Programador de extracciones y lotes de portadas:
+
+```bash
+/usr/local/bin/php /home/USUARIO_CPANEL/public_html/solodiscos.cl/app/artisan schedule:run >> /home/USUARIO_CPANEL/public_html/solodiscos.cl/app/storage/logs/scheduler-cron.log 2>&1
+```
+
+Trabajador de los trabajos pendientes:
+
+```bash
+/usr/local/bin/php /home/USUARIO_CPANEL/public_html/solodiscos.cl/app/artisan queue:drain >> /home/USUARIO_CPANEL/public_html/solodiscos.cl/app/storage/logs/queue-cron.log 2>&1
+```
+
+Las tareas respetan la frecuencia configurada por tienda: ejecutar el programador cada minuto no equivale a extraer todas las tiendas cada minuto. Los registros indicados permiten comprobar los errores. El usuario que ejecuta cron debe poder escribir en `storage/` y `bootstrap/cache/`. No hace falta modificar `.env` si la cola ya usa `QUEUE_CONNECTION=database`.
+
 ## Tiendas
 
 El panel permite agregar, editar o pausar fuentes, seleccionar plataforma y moneda, configurar frecuencia y condición por defecto. La condición recomendada es “Sin especificar”: solo se usa Nuevo o Usado si hay evidencia o una configuración explícita de la tienda.

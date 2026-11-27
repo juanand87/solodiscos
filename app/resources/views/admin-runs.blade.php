@@ -1,4 +1,4 @@
-<section class="panel"><h2>Últimas extracciones</h2><p class="muted">Las extracciones activas aparecen primero. Los trabajos en cola necesitan que el trabajador local esté ejecutándose.</p>
+<section class="panel"><h2>Últimas extracciones</h2><p class="muted">Las extracciones activas aparecen primero. Los trabajos en cola necesitan que el trabajador esté ejecutándose en el servidor. Si permanecen en espera, revisa las tareas programadas del hosting.</p>
 <div class="table-wrap"><table><thead><tr><th>Tienda</th><th>Resultado</th><th>Ofertas procesadas</th><th>Página</th><th>Tiempo</th><th>Detalle</th></tr></thead><tbody>
 @forelse($runs as $run)
 @php($busy=in_array($run->status,['queued','running']))
