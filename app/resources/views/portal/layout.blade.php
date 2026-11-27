@@ -1,7 +1,7 @@
 @extends('layout')
 @section('title','Portal de tiendas · SoloDiscos')
 @section('content')
-<link rel="stylesheet" href="{{ asset('portal.css') }}?v=1">
+<link rel="stylesheet" href="{{ asset('portal.css') }}?v=2">
 <div class="portal-shell">
 <div class="heading"><div><span class="eyebrow">PORTAL DE TIENDAS</span><h1>@yield('portal-title','Tu tienda en SoloDiscos')</h1>@isset($store)<p>{{ $store->name }}</p>@endisset</div></div>
 @if(Auth::guard('store')->check())
