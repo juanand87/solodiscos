@@ -37,3 +37,10 @@ html{scroll-behavior:smooth;scroll-padding-top:24px}body{font-family:"Segoe UI",
 
 .initial-discount-badge{display:inline-block;background:#e7f1de;color:#215c30!important;font-size:12px!important;font-weight:700;border-radius:6px;padding:5px 8px;line-height:1.5}.initial-discount-history{display:block;font-size:12px;text-decoration:underline;margin:4px 0 8px}.catalog-drop-percent{display:block;font-size:11px;font-weight:700;color:#286234;margin:0 0 8px;line-height:1.4}
 @media(max-width:640px){.site-header .main-nav{flex-wrap:wrap;justify-content:center;overflow:visible;row-gap:10px;height:auto}.storefront .site-header{padding-bottom:14px}}
+/* Make the catalog search field easier to spot. */
+.storefront .music-search .search-input-wrap{min-width:0;min-height:56px;padding:0 16px;border:2px solid #9caf79;border-radius:10px;background:#f4f8eb;color:#466437;transition:border-color .15s,box-shadow .15s,background .15s}
+.storefront .music-search .search-input-wrap>svg{flex-shrink:0;width:23px;height:23px;stroke-width:2}
+.storefront .music-search .search-input-wrap input{font-size:16px;font-weight:500;min-height:52px;color:#1e3526;outline:none;box-shadow:none}
+.storefront .music-search .search-input-wrap input::placeholder{color:#596c4d;opacity:1}
+.storefront .music-search .search-input-wrap:focus-within{border-color:#416a36;background:#fff;box-shadow:0 0 0 4px #8caf3d26}
+@media(max-width:580px){.storefront .music-search .search-input-wrap{padding:0 12px;min-height:54px}.storefront .music-search .search-input-wrap input{min-height:50px;font-size:16px}}
