@@ -1,5 +1,19 @@
 # SoloDiscos
 
+## Integración de tiendas con WooCommerce
+
+Cada cuenta verificada dispone de **Integración** en `/tiendas/integracion`: descarga del plugin, generación de clave mostrada una sola vez, reemplazo, revocación y ventas por período. La clave se guarda en SoloDiscos únicamente como SHA-256, queda vinculada a la tienda y su dominio y deja de funcionar si la tienda se desactiva o cambia de dominio. Cada tienda solo ve sus datos. El administrador dispone de **Ventas integradas** en `/admin/ventas-integradas`.
+
+El plugin instalable está en `app/integrations/solodiscos-woocommerce.zip`; sus fuentes y manual están en `app/integrations/solodiscos-woocommerce/`. Para regenerar el ZIP en PowerShell: `Compress-Archive -LiteralPath app/integrations/solodiscos-woocommerce -DestinationPath app/integrations/solodiscos-woocommerce.zip -Force`. El destino del plugin es `https://www.solodiscos.cl`; no hay una dirección configurable que pueda recibir la clave por error. Usa APIs CRUD de WooCommerce y declara compatibilidad HPOS. Requiere WordPress 6.4+, PHP 7.4+ y WooCommerce 8.2+.
+
+`POST /api/v1/woocommerce/orders` recibe snapshots de pedidos, con autenticación Bearer y límite de 120 solicitudes/minuto por clave. Se actualiza por tienda e ID y se ignoran versiones antiguas. `GET /api/v1/woocommerce/summary` entrega catálogo, las estadísticas existentes de interés/clics/oportunidades y ventas de los últimos 30 días. No hay sesión web ni exclusiones generales de CSRF en la API; las acciones del portal sí requieren sesión verificada y CSRF. El plugin muestra el resumen y listas de oportunidades, con enlaces a catálogo, comparación de precios, estadísticas y solicitudes completas en el portal.
+
+Las ventas corresponden a **todos los productos de WooCommerce**, no a compras atribuidas a SoloDiscos. Pedidos pagados por fecha de creación UTC, excluyendo cancelados, fallidos y eliminados; total con impuestos y envío, devoluciones, neto, unidades netas y ticket promedio neto, separados por moneda. Las devoluciones corrigen el período del pedido original. No se transmiten nombres, correos, direcciones, medios de pago ni líneas de productos. No se puede calcular todavía atribución de ventas ni ranking de productos vendidos con este contrato. Sin datos sincronizados no se presume ausencia de ventas.
+
+Action Scheduler en WooCommerce envía los cambios, reintenta fallos e importa el historial en lotes de 50 pedidos. Debe funcionar el cron de WordPress. La pantalla muestra último envío y errores; las tareas pendientes/fallidas se revisan en WooCommerce → Estado → Acciones programadas. Reimportar el historial permite recuperar fallos sin duplicar ventas. El manual describe eliminaciones, reembolsos y conservación de datos al desconectar.
+
+Despliegue: subir también `app/integrations/` y ejecutar desde `app/`: `php artisan migrate --force`, `php artisan config:clear`, `php artisan route:clear`, `php artisan view:clear`, `php artisan config:cache`. Conservar el `.env` de producción. Desplegar el receptor antes de instalar el plugin en las tiendas. Luego, instalar el ZIP, generar clave y guardarla en WooCommerce → SoloDiscos. Validación local: pruebas `StoreIntegrationTest`, `StorePortalTest`, `SeoTest` y `php app/integrations/tests/plugin-smoke.php` desde la raíz. La prueba de transporte usa dobles; queda pendiente validar el ciclo completo en un WordPress/WooCommerce real con HPOS y almacenamiento clásico antes de distribuir.
+
 Las fuentes evaluadas que se dejaron para una etapa posterior están guardadas en [tiendas-pendientes.json](tiendas-pendientes.json), con plataforma, motivo y observaciones para retomar su integración. No se encolan ni se agregan a la base como tiendas activas.
 
 ## Diseño del sitio

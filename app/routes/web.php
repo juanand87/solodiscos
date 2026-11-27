@@ -39,6 +39,10 @@ Route::prefix('tiendas')->name('portal.')->group(function(){
     Route::post('/salir',[$auth,'logout'])->middleware('throttle:portal-logout')->name('logout');
     Route::middleware(\App\Http\Middleware\StorePortalAccess::class)->group(function()use($portal){
         Route::get('/',[$portal,'dashboard'])->name('dashboard');
+        Route::get('/integracion',[\App\Http\Controllers\StoreIntegrationController::class,'index'])->name('integration');
+        Route::post('/integracion/clave',[\App\Http\Controllers\StoreIntegrationController::class,'rotate'])->middleware('throttle:portal-integration-key')->name('integration.rotate');
+        Route::delete('/integracion/clave',[\App\Http\Controllers\StoreIntegrationController::class,'revoke'])->name('integration.revoke');
+        Route::get('/integracion/plugin',[\App\Http\Controllers\StoreIntegrationController::class,'download'])->name('integration.download');
         Route::get('/catalogo',[$portal,'catalog'])->name('catalog');
         Route::get('/estadisticas',[$portal,'statistics'])->name('statistics');
         Route::get('/estadisticas/discos/{album}/{format}',\App\Http\Controllers\EngagementDetailController::class)->whereNumber('album')->where('format','cd|vinyl')->name('statistics.disc');
@@ -49,6 +53,7 @@ Route::prefix('tiendas')->name('portal.')->group(function(){
     });
 });
 Route::middleware('auth:web')->prefix('admin')->group(function() {
+    Route::get('/ventas-integradas',[\App\Http\Controllers\StoreIntegrationController::class,'admin'])->name('admin.integration.sales');
     Route::get('/correo', [\App\Http\Controllers\PortalAdminController::class,'smtp'])->name('admin.smtp');
     Route::put('/correo', [\App\Http\Controllers\PortalAdminController::class,'saveSmtp'])->middleware('throttle:10,1')->name('admin.smtp.save');
     Route::post('/correo/prueba', [\App\Http\Controllers\PortalAdminController::class,'testSmtp'])->middleware('throttle:2,1')->name('admin.smtp.test');
