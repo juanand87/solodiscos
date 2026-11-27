@@ -2,7 +2,7 @@
 namespace App\Http\Controllers;
 use App\Models\{Offer,StoreCorrection};
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\{Auth,DB};
+use Illuminate\Support\Facades\{Auth,Cache,DB};
 use Illuminate\Validation\Rule;
 
 class StorePortalController extends Controller {
@@ -51,7 +51,15 @@ class StorePortalController extends Controller {
         $query=DB::query()->fromSub($own,'own')->joinSub($others,'other',fn($j)=>$j->on('own.album_id','=','other.album_id')->on('own.format','=','other.format')->on('own.condition','=','other.condition'))
             ->join('albums as a','a.id','=','own.album_id')->select('own.*','other.other_price','other.other_stores','a.artist','a.title');
         if(($filters['mode']??'opportunities')==='best')$query->whereColumn('own.price','<=','other.other_price');else $query->whereColumn('own.price','>','other.other_price');
-        $products=$query->orderBy('a.artist')->orderBy('a.title')->orderBy('own.album_id')->orderBy('own.format')->orderBy('own.condition')->paginate(25)->withQueryString();
+        $total=(clone $query)->count();
+        $sampleFilters=['format'=>$filters['format']??'','condition'=>$filters['condition']??'','mode'=>($filters['mode']??'opportunities')==='best'?'best':'opportunities'];
+        $sampleKey='portal-price-preview:'.$store->id.':'.now()->toDateString().':'.hash('sha256',json_encode($sampleFilters));
+        $sample=Cache::remember($sampleKey,now()->endOfDay(),fn()=>(clone $query)->inRandomOrder()->limit(5)->get()->map(fn($p)=>['album_id'=>$p->album_id,'format'=>$p->format,'condition'=>$p->condition])->all());
+        $query->where(function($q)use($sample){
+            if(!$sample){$q->whereRaw('1=0');return;}
+            foreach($sample as $group)$q->orWhere(fn($row)=>$row->where('own.album_id',$group['album_id'])->where('own.format',$group['format'])->where('own.condition',$group['condition']));
+        });
+        $products=new \Illuminate\Pagination\LengthAwarePaginator($query->orderBy('a.artist')->orderBy('a.title')->orderBy('own.album_id')->orderBy('own.format')->orderBy('own.condition')->limit(5)->get(),$total,5,1);
         $groups=[];
         if($products->isNotEmpty()){
             $offers=(clone $eligible)->whereIn('o.album_id',$products->pluck('album_id')->unique()->all())

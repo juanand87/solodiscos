@@ -98,6 +98,19 @@ class StorePortalTest extends TestCase {
         $this->assertSame(0,$this->get(route('portal.statistics',['format'=>'vinyl']))->viewData('metrics')['clicks']);
         $this->assertSame([],$this->get(route('portal.statistics',['from'=>now()->subDays(10)->toDateString(),'to'=>now()->subDays(5)->toDateString()]))->viewData('metrics')['series']);
     }
+    public function test_price_preview_is_limited_to_five_stable_daily_results_without_pagination_bypass(): void {
+        $store=$this->store();$other=$this->store('competitor.example');
+        for($i=0;$i<14;$i++){$own=$this->offer($store,'Preview '.$i,10000);$this->offer($other,'Competitor '.$i,9000,$own->album);}
+        $this->actingAs($this->account($store),'store');
+        $first=$this->get(route('portal.prices'))->assertOk()->assertSee('Muestra gratuita:')->assertSee('Programa de Tiendas Asociadas SoloDiscos')->assertSee(route('portal.integration'));
+        $products=$first->viewData('products');$this->assertCount(5,$products);$this->assertSame(14,$products->total());
+        $ids=$products->pluck('album_id')->all();
+        $again=$this->get(route('portal.prices',['page'=>2]))->assertOk()->viewData('products');
+        $this->assertSame($ids,$again->pluck('album_id')->all());
+        $this->assertSame($ids,$this->get(route('portal.prices',['mode'=>'opportunities']))->viewData('products')->pluck('album_id')->all());
+        $filtered=$this->get(route('portal.prices',['format'=>'vinyl']))->viewData('products');$this->assertCount(0,$filtered);
+        $this->assertSame(0,$this->get(route('portal.prices',['mode'=>'best']))->viewData('products')->total());
+    }
     public function test_prices_deduplicate_own_offers_include_ties_and_separate_condition(): void {
         $store=$this->store();$other=$this->store('other.example');$own=$this->offer($store);$this->offer($store,'Duplicate own',11000,$own->album);$foreign=$this->offer($other,'Foreign price',9000,$own->album);
         $this->actingAs($this->account($store),'store');$result=$this->get(route('portal.prices'))->assertOk()->viewData('products');$this->assertSame(1,$result->total());$this->assertEquals(10000,$result->first()->price);
