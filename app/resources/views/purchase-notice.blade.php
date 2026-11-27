@@ -1,0 +1,1 @@
+<aside class="purchase-notice" aria-label="Compra en la tienda"><strong>Comparas aquí. Compras en cada tienda.</strong> SoloDiscos no vende los discos ni recibe pagos. Confirma precio, stock, edición y envío en el sitio del vendedor. <a href="{{ route('policies.show','compras') }}">Cómo funciona</a></aside>

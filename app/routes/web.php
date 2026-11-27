@@ -3,6 +3,11 @@
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\{AdminController,CatalogController,CoverController};
 Route::get('/',[CatalogController::class,'index'])->name('catalog');
+Route::get('/politicas/{policy}',function(string $policy){
+    $pages=config('policies.pages');
+    abort_unless(isset($pages[$policy]),404);
+    return view('policies.show',['policy'=>$pages[$policy],'slug'=>$policy]);
+})->where('policy','compras|transparencia|privacidad|seguridad|tiendas')->name('policies.show');
 Route::get('/rankings',[\App\Http\Controllers\RankingController::class,'index'])->name('rankings');
 Route::get('/rankings/estadisticas',[\App\Http\Controllers\RankingController::class,'index'])->name('rankings.statistics');
 Route::get('/rankings/{store}/comparados/{condition}',[\App\Http\Controllers\RankingController::class,'sample'])->where('condition','new|used|all')->name('rankings.sample');

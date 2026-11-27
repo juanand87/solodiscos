@@ -7,6 +7,7 @@
 <a class="back" href="{{ route($administration?'admin.rankings':'rankings',array_diff_key($filters,['cheapest'=>true])) }}#precios">Volver al ranking</a>
 <div class="heading"><div><span class="eyebrow">LOS DISCOS DETRÁS DEL RANKING</span><h1>{{ $onlyCheapest?'Productos con precio mínimo de ':'Álbumes comparados de ' }}{{ $store->name }}</h1><p><strong>{{ number_format($products->total(),0,',','.') }}</strong> álbumes y formatos · {{ $filters['condition']==='new'?'Nuevos':($filters['condition']==='used'?'Usados':'Nuevos y usados') }} · {{ [''=>'CD y vinilo','cd'=>'CD','vinyl'=>'Vinilo'][$filters['format']] }}</p></div></div>
 <p class="muted">Hasta tres tiendas por disco, con una oferta por tienda. Incluye empates en el mejor precio. Comparamos el mismo álbum, formato y condición; las ediciones pueden variar.</p>
+@include('purchase-notice')
 <div class="comparison-list">
 @forelse($products as $item)
 @php($album=$item['anchor'])
