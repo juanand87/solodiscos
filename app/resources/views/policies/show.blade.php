@@ -5,7 +5,7 @@
 <div class="policy-layout">
 <header class="policy-header"><span class="eyebrow">Información sobre SoloDiscos.cl</span><h1>{{ $policy['title'] }}</h1><p class="policy-intro">{{ $policy['intro'] }}</p><small>Última actualización: {{ config('policies.updated_at') }}</small></header>
 <nav class="policy-navigation" aria-label="Políticas de SoloDiscos">
-@foreach(config('policies.pages') as $key=>$page)<a href="{{ route('policies.show',$key) }}" @if($key===$slug) aria-current="page" @endif>{{ $page['label'] }}</a>@endforeach
+@foreach((config('policies.pages') ?? []) as $key=>$page)<a href="{{ route('policies.show',$key) }}" @if($key===$slug) aria-current="page" @endif>{{ $page['label'] }}</a>@endforeach
 </nav>
 <article class="policy-content">
 @foreach($policy['sections'] as $section)

@@ -9,6 +9,13 @@ use Tests\TestCase;
 class PublicPoliciesTest extends TestCase {
     use RefreshDatabase;
 
+    public function test_missing_policy_configuration_does_not_break_the_public_site(): void {
+        config(['policies.pages'=>null]);
+        $this->get('/')->assertOk()->assertSee('SoloDiscos no vende los discos ni recibe pagos.');
+        $this->get('/login')->assertOk();
+        $this->get('/politicas/compras')->assertNotFound();
+    }
+
     public function test_policies_are_public_and_linked_from_the_footer(): void {
         foreach(config('policies.pages') as $slug=>$policy){
             $response=$this->get(route('policies.show',$slug))->assertOk()->assertSee($policy['title'])->assertSee('SoloDiscos.cl');
