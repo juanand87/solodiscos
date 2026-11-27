@@ -12,6 +12,7 @@ return Application::configure(basePath: dirname(__DIR__))
     )
     ->withMiddleware(function (Middleware $middleware): void {
         $middleware->prepend(\App\Http\Middleware\EnsureProductionHttps::class);
+        $middleware->append(\App\Http\Middleware\SeoResponseHeaders::class);
     })
     ->withExceptions(function (Exceptions $exceptions): void {
         //

@@ -3,6 +3,9 @@
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\{AdminController,CatalogController,CoverController};
 Route::get('/',[CatalogController::class,'index'])->name('catalog');
+Route::get('/sitemap.xml',[\App\Http\Controllers\SitemapController::class,'index'])->name('sitemap');
+Route::get('/sitemap-paginas.xml',[\App\Http\Controllers\SitemapController::class,'pages'])->name('sitemap.pages');
+Route::get('/sitemap-discos-{page}.xml',[\App\Http\Controllers\SitemapController::class,'albums'])->where('page','[1-9][0-9]{0,3}')->name('sitemap.albums');
 Route::get('/ir/{offer}',\App\Http\Controllers\OfferVisitController::class)->whereNumber('offer')->name('offers.visit');
 Route::get('/descuentos',[\App\Http\Controllers\DiscountController::class,'index'])->name('discounts');
 Route::get('/descuentos/{offer}',[\App\Http\Controllers\DiscountController::class,'history'])->whereNumber('offer')->name('discounts.history');

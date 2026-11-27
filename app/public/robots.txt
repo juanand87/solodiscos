@@ -1,2 +1,7 @@
 User-agent: *
-Disallow:
+Disallow: /admin
+Disallow: /tiendas
+Disallow: /ir/
+Disallow: /up
+
+Sitemap: https://www.solodiscos.cl/sitemap.xml

@@ -2,7 +2,7 @@
 @section('content')
 @php($isLanding=!request()->filled('q')&&!request()->filled('format')&&!request()->filled('condition')&&(int)request('page',1)===1)
 @if($isLanding) @include('storefront.hero') @else
-<div class="catalog-intro"><span class="eyebrow">ENCUENTRA TU PRÓXIMA ESCUCHA</span><h1>{{ request('q')?'Resultados para “'.request('q').'”':(request('format')==='vinyl'?'Vinilos que merecen sonar.':(request('format')==='cd'?'Dale espacio a otro CD.':'Tu próxima colección empieza aquí.')) }}</h1><p>Distintas tiendas, todos los precios y una decisión que es tuya.</p></div>
+<div class="catalog-intro"><span class="eyebrow">ENCUENTRA TU PRÓXIMA ESCUCHA</span><h1>{{ request('q')?'Resultados para “'.request('q').'”':(request('format')==='vinyl'?'Vinilos en Chile: compara precios.':(request('format')==='cd'?'CDs en Chile: compara precios.':'Tu próxima colección empieza aquí.')) }}</h1><p>Distintas tiendas, todos los precios y una decisión que es tuya.</p></div>
 @endif
 <form class="search music-search" id="buscar" method="get" action="{{ route('catalog') }}#catalogo">
 <div class="search-input-wrap"><svg width="21" height="21" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" aria-hidden="true"><circle cx="10.5" cy="10.5" r="6.5"/><path d="m16 16 5 5"/></svg><label class="sr-only" for="music-query">Artista o álbum</label><input id="music-query" name="q" aria-label="Artista o álbum" placeholder="Busca un artista o álbum" value="{{ request('q') }}"></div>
