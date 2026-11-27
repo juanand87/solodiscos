@@ -14,7 +14,7 @@ class StatisticsController extends Controller {
     }
     public function index(Request $r,CatalogStatistics $stats) {
         $filters=$this->filters($r);
-        return view('statistics',$stats->summary($filters)+['filters'=>$filters,'types'=>OfferEvents::TYPES,
+        return view('statistics',$stats->summary($filters)+['metrics'=>app(\App\Services\EngagementReports::class)->report($filters),'filters'=>$filters,'types'=>OfferEvents::TYPES,
             'stores'=>Store::orderBy('name')->get(['id','name','active']),'events'=>$stats->listing($filters)->paginate(30)->appends($filters)]);
     }
     public function export(Request $r,CatalogStatistics $stats) {

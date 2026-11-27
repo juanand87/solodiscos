@@ -37,6 +37,7 @@ class CatalogController extends Controller {
         if (!$format) return redirect()->route('album',[$album,$formats->contains('vinyl')?'vinyl':$formats->first()]+$filters);
         abort_unless($formats->contains($format),404);
         $album->load(['offers'=>function($q)use($filter,$format){$filter($q);$q->where('format',$format)->with('store')->orderBy('price');}]);
+        app(\App\Services\EngagementTracker::class)->album($r,$album,$format);
         return view('album',compact('album','format','formats','backUrl'));
     }
 }

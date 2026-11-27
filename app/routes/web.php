@@ -3,6 +3,7 @@
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\{AdminController,CatalogController,CoverController};
 Route::get('/',[CatalogController::class,'index'])->name('catalog');
+Route::get('/ir/{offer}',\App\Http\Controllers\OfferVisitController::class)->whereNumber('offer')->name('offers.visit');
 Route::get('/politicas/{policy}',function(string $policy){
     $pages=config('policies.pages');
     abort_unless(isset($pages[$policy]),404);

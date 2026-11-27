@@ -29,7 +29,7 @@
 <section class="comparison-store {{ $best?'comparison-best':'' }}" data-store-id="{{ $offer->store_id }}">
 <div class="comparison-seller"><span class="comparison-store-logo">@if($offer->logo_url)<img src="{{ $offer->logo_url }}" alt="Logo de {{ $offer->store_name }}" loading="lazy" referrerpolicy="no-referrer">@else<span class="disc" aria-hidden="true"></span>@endif</span><div><strong>{{ $offer->store_name }}</strong><small>{{ $best?'Mejor precio':'+ $'.number_format((float)$offer->price-$minimum,0,',','.') }}</small></div></div>
 <strong class="comparison-price">${{ number_format($offer->price,0,',','.') }}</strong>
-<a class="comparison-visit" href="{{ $offer->url }}" target="_blank" rel="noopener noreferrer" aria-label="Ver {{ $album->album_title }} en {{ $offer->store_name }}">Ver tienda<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" aria-hidden="true"><path d="M14 4h6v6m0-6L10 14"/><path d="M10 4H5a1 1 0 0 0-1 1v14a1 1 0 0 0 1 1h14a1 1 0 0 0 1-1v-5"/></svg></a>
+<a class="comparison-visit" href="{{ route('offers.visit',$offer->id) }}" target="_blank" rel="noopener noreferrer" aria-label="Ver {{ $album->album_title }} en {{ $offer->store_name }}">Ver tienda<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" aria-hidden="true"><path d="M14 4h6v6m0-6L10 14"/><path d="M10 4H5a1 1 0 0 0-1 1v14a1 1 0 0 0 1 1h14a1 1 0 0 0 1-1v-5"/></svg></a>
 </section>
 @endforeach
 </div>
