@@ -42,7 +42,10 @@ class AdminController extends Controller {
         $data=$this->dashboardData();
         return response()->json(['html'=>view('admin-live',$data)->render(),'active_runs'=>$data['runs']->whereIn('status',['queued','running'])->count()])->header('Cache-Control','no-store, private');
     }
-    public function form(?Store $store=null) { return view('store-form',['store'=>$store??new Store(['interval_hours'=>48,'active'=>true,'currency'=>'CLP','default_condition'=>'unknown'])]); }
+    public function form(?Store $store=null) {
+        $store??=new Store(['interval_hours'=>48,'active'=>true,'currency'=>'CLP','default_condition'=>'unknown']);
+        return view('store-form',['store'=>$store,'partnerAccess'=>$store->exists?app(\App\Services\StorePartnerAccess::class)->status($store):null]);
+    }
     public function save(Request $r,StoreClient $client,?Store $store=null) {
         $url=rtrim(trim((string)$r->input('url')),'/');
         if($r->input('platform')==='woocommerce')$url=preg_replace('~/(?:tienda|shop)$~i','',$url);
@@ -58,7 +61,7 @@ class AdminController extends Controller {
             'currency'=>['required',Rule::in(['CLP','USD','EUR'])],'default_condition'=>['required',Rule::in(['unknown','new','used','category'])],
             'new_condition_categories'=>'nullable|string|max:5000','used_condition_categories'=>'nullable|string|max:5000',
             'category_condition_fallback'=>['sometimes','required',Rule::in(['unknown','new','used'])],
-            'interval_hours'=>'required|integer|min:6|max:168','active'=>'sometimes|boolean','logo_url'=>'nullable|url:http,https|max:2000'],
+            'interval_hours'=>'required|integer|min:6|max:168','active'=>'sometimes|boolean','logo_url'=>'nullable|url:http,https|max:2000','commercial_agreement_active'=>'sometimes|boolean'],
             ['url.unique'=>'Esta tienda ya está registrada. Usa el registro existente para actualizar su catálogo.']);
         if($data['default_condition']==='category'){
             $categories=app(\App\Services\CategoryConditions::class);
@@ -72,6 +75,12 @@ class AdminController extends Controller {
             throw ValidationException::withMessages(['url'=>'Para cambiar el dominio o la plataforma de una tienda con productos, pausa esta fuente y agrega una tienda nueva.']);
         }
         $data['url']=rtrim($data['url'],'/'); $data['active']=$r->boolean('active');
+        if($r->has('commercial_agreement_active')){
+            $data['commercial_agreement_active']=$r->boolean('commercial_agreement_active');
+            if($data['commercial_agreement_active'] && !$store?->commercial_agreement_active){
+                $data['commercial_agreement_activated_at']=now();$data['commercial_agreement_activated_by']=$r->user('web')->id;
+            }
+        }
         $updated=app(\App\Services\StoreConditions::class)->configure($store??new Store,$data);
         return redirect()->route('admin')->with('status',"Tienda guardada. Condición actualizada en $updated publicaciones; los rankings se recalcularán automáticamente.");
     }

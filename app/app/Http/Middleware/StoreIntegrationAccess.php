@@ -14,6 +14,9 @@ class StoreIntegrationAccess {
         $store=Store::find($integration->store_id);
         abort_unless($store && $store->active && app(StoreDomain::class)->host($store)===$integration->domain,403);
         $request->attributes->set('integration_store',$store);
-        return $next($request)->header('Cache-Control','no-store, private');
+        $response=$next($request);
+        if($response->isSuccessful())DB::table('store_integrations')->where('id',$integration->id)->where('token_hash',$integration->token_hash)
+            ->update(['last_connected_at'=>now('UTC'),'connected_token_hash'=>$integration->token_hash]);
+        return $response->header('Cache-Control','no-store, private');
     }
 }

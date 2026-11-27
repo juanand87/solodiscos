@@ -2,7 +2,8 @@
 @section('portal-title','Oportunidad de mejora $')
 @section('portal-content')
 <form method="get" class="panel portal-filters"><label>Comparación<select name="mode"><option value="opportunities" @selected(($filters['mode']??'opportunities')==='opportunities')>Otras tiendas tienen menor precio</option><option value="best" @selected(($filters['mode']??'')==='best')>Tengo el precio mínimo (incluye empates)</option></select></label><label>Formato<select name="format"><option value="">CD y vinilo</option><option value="cd" @selected(($filters['format']??'')==='cd')>CD</option><option value="vinyl" @selected(($filters['format']??'')==='vinyl')>Vinilo</option></select></label><label>Condición<select name="condition"><option value="">Nuevos y usados</option><option value="new" @selected(($filters['condition']??'')==='new')>Nuevo</option><option value="used" @selected(($filters['condition']??'')==='used')>Usado</option></select></label><button class="button">Comparar</button></form>
-<p class="portal-price-intro">Muestra gratuita: {{ $products->count() }} de {{ number_format($products->total(),0,',','.') }} productos comparables. Hasta 5 resultados al azar por combinación de filtros, con la misma selección durante el día. CLP + envío. Mismo álbum, formato y condición; las ediciones pueden variar. Comprobados en las últimas 72 horas.</p>
+@if($partnerAccess['full_access'])<p class="portal-price-intro"><strong>Acceso completo · Tienda asociada</strong> · {{ number_format($products->total(),0,',','.') }} productos comparables, en páginas de 25. CLP + envío. Mismo álbum, formato y condición; las ediciones pueden variar. Comprobados en las últimas 72 horas.</p>
+@else<p class="portal-price-intro">Muestra gratuita: {{ $products->count() }} de {{ number_format($products->total(),0,',','.') }} productos comparables. Hasta 5 resultados al azar por combinación de filtros, con la misma selección durante el día. CLP + envío. Mismo álbum, formato y condición; las ediciones pueden variar. Comprobados en las últimas 72 horas.</p>@endif
 <div class="portal-price-list">
 @forelse($products as $product)
 @php($difference=(float)$product->price-(float)$product->other_price)
@@ -30,5 +31,8 @@
 </div></article>
 @empty<p class="panel">No hay productos con estos filtros. La identificación y la condición deben estar resueltas para poder comparar.</p>@endforelse
 </div>
+@if($partnerAccess['full_access']){{ $products->links('pagination') }}@else
 <section class="panel"><h2>Acceso completo para tiendas asociadas</h2><p>Para acceder a más resultados, tu tienda debe conectar el plugin y contar con un acuerdo comercial activo en el Programa de Tiendas Asociadas SoloDiscos.</p><p>Conecta el plugin como primer paso. La activación del plan y sus condiciones comerciales se coordinan con SoloDiscos.</p><a class="button" href="{{ route('portal.integration') }}">Conectar mi tienda</a></section>
+<p class="portal-price-intro">Acuerdo comercial: <strong>{{ $partnerAccess['agreement_active']?'Activo':'Pendiente de activación por SoloDiscos' }}</strong> · Plugin: <strong>{{ $partnerAccess['plugin_connected']?'Conectado':'Pendiente de conexión verificada' }}</strong>.</p>
+@endif
 @endsection

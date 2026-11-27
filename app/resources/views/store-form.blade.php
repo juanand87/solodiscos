@@ -14,6 +14,14 @@
 <label>Cuando no coincida ninguna categoría<select name="category_condition_fallback">@foreach(['unknown'=>'Sin especificar','new'=>'Nuevo','used'=>'Usado'] as $value=>$label)<option value="{{ $value }}" @selected(old('category_condition_fallback',$store->category_condition_fallback??'unknown')===$value)>{{ $label }}</option>@endforeach</select><small>Se aplica solo si recibimos categorías del producto y ninguna coincide con las reglas anteriores. Si faltan categorías o coinciden tanto las de nuevos como las de usados, queda «Sin especificar». Las correcciones manuales se conservan.</small></label>
 <p class="muted">WooCommerce: categorías recibidas del catálogo. Bsale: colección consultada. Shopify: su catálogo público no incluye las colecciones; este modo requiere un conector que las extraiga. Las etiquetas no se consideran categorías.</p></fieldset>
 <label class="check full"><input name="active" type="checkbox" value="1" @checked(old('active',$store->active))> Tienda activa para importar y mostrar ofertas</label>
+<fieldset class="full"><legend>Programa de Tiendas Asociadas SoloDiscos</legend>
+<input type="hidden" name="commercial_agreement_active" value="0">
+<label class="check"><input name="commercial_agreement_active" type="checkbox" value="1" @checked(old('commercial_agreement_active',$store->commercial_agreement_active))> Acuerdo comercial activo</label>
+<p>Habilita el análisis completo de oportunidades de precio únicamente cuando la tienda también tenga el plugin conectado. No activa cobros automáticos ni modifica el ranking público.</p>
+@if($store->exists)<p>Plugin: <strong>{{ $partnerAccess['plugin_connected']?'Conectado':'Sin conexión verificada' }}</strong> · Acceso actual: <strong>{{ $partnerAccess['full_access']?'Completo':'Muestra de hasta 5 resultados' }}</strong></p>
+@if($store->commercial_agreement_activated_at)<small>Última activación del acuerdo: {{ $store->commercial_agreement_activated_at->format('d/m/Y H:i') }}.</small>@endif
+@endif
+</fieldset>
 <label class="full">URL del logo (opcional)<input type="url" name="logo_url" value="{{ old('logo_url',$store->logo_url) }}" placeholder="https://tienda.cl/logo.png"><small>Se intenta extraer automáticamente al importar por primera vez. Puedes reemplazarlo aquí.</small></label>
 <div class="notice full">El conector usa el catálogo público. Algunas tiendas requieren adaptaciones. Los productos variables de WooCommerce se omiten con una observación para evitar precios incorrectos.</div><div class="full"><button class="button">Guardar tienda</button></div></form>
 @if($store->exists)<section class="panel"><h2>Logo de la tienda</h2>@if($store->logo_url)<img class="store-logo-preview" src="{{ $store->logo_url }}" alt="{{ $store->name }}" referrerpolicy="no-referrer">@endif<form method="post" action="{{ route('stores.logo',$store) }}">@csrf<button class="button secondary">Extraer logo del sitio</button></form></section>@endif @endsection
