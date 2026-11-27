@@ -18,6 +18,7 @@ class CatalogController extends Controller {
         elseif ($r->sort==='recent') $query->orderByRaw('MAX(updated_at) DESC');
         $publications=$query->orderBy(Album::select('artist')->whereColumn('albums.id','offers.album_id')->limit(1))->orderBy('album_id')->orderBy('format')->paginate($perPage)->withQueryString();
         $publications->load(['album.offers'=>function($q)use($filter){$q->with('store');$filter($q);}]);
+        app(\App\Services\InitialPriceDiscounts::class)->attach($publications->getCollection()->flatMap(fn($publication)=>$publication->album->offers)->unique('id')->values());
         $partnerStores=Store::where('active',true)->whereHas('offers',fn($q)=>$q->available())->orderBy('name')->get(['id','name','logo_url']);
         $bannerCovers=Offer::available()->where('format','cd')->whereNotNull('image')->orderByDesc('checked_at')->limit(4)->get(['image','title']);
         return view('catalog',compact('publications','partnerStores','bannerCovers','perPage'));
@@ -37,6 +38,7 @@ class CatalogController extends Controller {
         if (!$format) return redirect()->route('album',[$album,$formats->contains('vinyl')?'vinyl':$formats->first()]+$filters);
         abort_unless($formats->contains($format),404);
         $album->load(['offers'=>function($q)use($filter,$format){$filter($q);$q->where('format',$format)->with('store')->orderBy('price');}]);
+        app(\App\Services\InitialPriceDiscounts::class)->attach($album->offers);
         app(\App\Services\EngagementTracker::class)->album($r,$album,$format);
         return view('album',compact('album','format','formats','backUrl'));
     }

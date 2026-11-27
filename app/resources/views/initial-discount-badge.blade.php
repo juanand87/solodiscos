@@ -1,0 +1,2 @@
+@php($initialDrop=$offer->relationLoaded('initialDiscount')?$offer->getRelation('initialDiscount'):null)
+@if($initialDrop)<p class="initial-discount-badge" title="Primer precio válido registrado: CLP {{ number_format($initialDrop['initial'],0,',','.') }} el {{ Carbon\Carbon::parse($initialDrop['at'])->format('d/m/Y') }}">↓ {{ number_format($initialDrop['percent'],1,',','.') }}% desde el primer precio registrado</p><a class="initial-discount-history" href="{{ route('discounts.history',$offer) }}">Ver gráfico de precios →</a>@endif
