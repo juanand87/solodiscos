@@ -110,6 +110,17 @@ class StorePortalTest extends TestCase {
         $this->get(route('admin.smtp'))->assertOk()->assertDontSee('smtp-secret-123');$payload['password']='';$this->put(route('admin.smtp.save'),$payload)->assertRedirect();$this->assertSame('smtp-secret-123',SmtpSetting::first()->password);
         $payload['port']=999999;$payload['password']='must-not-be-flashed';$this->put(route('admin.smtp.save'),$payload)->assertSessionHasErrors('port');$this->assertArrayNotHasKey('password',session()->getOldInput());
     }
+    public function test_price_cards_show_real_cover_and_three_distinct_competitors_with_ties(): void {
+        $store=$this->store();$own=$this->offer($store,'Album comparison',26000);$own->update(['image'=>'https://shop.example/cover.jpg']);
+        $ids=[];
+        foreach([25900,25900,27000,28000] as $i=>$price){$other=$this->store('competitor'.$i.'.example');$ids[]=$other->id;$this->offer($other,'Competitor '.$i,$price,$own->album);if($i===0)$this->offer($other,'Duplicate competitor',26500,$own->album);}
+        $used=$this->offer($this->store('used.example'),'Wrong condition',1000,$own->album);$used->update(['condition'=>'used']);
+        $stale=$this->offer($this->store('stale.example'),'Stale price',500,$own->album);$stale->update(['checked_at'=>now()->subDays(4)]);
+        $response=$this->actingAs($this->account($store),'store')->get(route('portal.prices',['format'=>'cd','condition'=>'new']))->assertOk()->assertSee('Oportunidad de mejora $')->assertSee('https://shop.example/cover.jpg')->assertSee('Diferencia:')->assertSee('$100')->assertSee('0,4%')->assertDontSee('Duplicate competitor')->assertDontSee('used.example')->assertDontSee('stale.example');
+        $product=$response->viewData('products')->first();$this->assertSame(4,(int)$product->other_stores);$this->assertSame(array_slice($ids,0,3),array_column($product->competitors,'store_id'));
+        $this->assertEquals([25900,25900,27000],array_column($product->competitors,'price'));
+        $response->assertSee(route('album',[$own->album_id,'cd','condition'=>'new','currency'=>'CLP','comparison'=>1]));
+    }
     public function test_admin_can_answer_own_request_and_response_visible_only_to_its_store(): void {
         $store=$this->store();$account=$this->account($store);$offer=$this->offer($store);$correction=StoreCorrection::create(['store_id'=>$store->id,'store_account_id'=>$account->id,'offer_id'=>$offer->id,'field'=>'format','message'=>'Please correct format']);
         $this->actingAs($account,'store')->put(route('admin.corrections.review',$correction),['status'=>'resolved','response'=>'Should not work'])->assertRedirect(route('login'));

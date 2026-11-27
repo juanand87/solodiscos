@@ -53,7 +53,24 @@ class StorePortalController extends Controller {
         $query=DB::query()->fromSub($own,'own')->joinSub($others,'other',fn($j)=>$j->on('own.album_id','=','other.album_id')->on('own.format','=','other.format')->on('own.condition','=','other.condition'))
             ->join('albums as a','a.id','=','own.album_id')->select('own.*','other.other_price','other.other_stores','a.artist','a.title');
         if(($filters['mode']??'opportunities')==='best')$query->whereColumn('own.price','<=','other.other_price');else $query->whereColumn('own.price','>','other.other_price');
-        return view('portal.prices',compact('store','filters')+['products'=>$query->orderBy('a.artist')->orderBy('a.title')->orderBy('own.album_id')->orderBy('own.format')->orderBy('own.condition')->paginate(25)->withQueryString()]);
+        $products=$query->orderBy('a.artist')->orderBy('a.title')->orderBy('own.album_id')->orderBy('own.format')->orderBy('own.condition')->paginate(25)->withQueryString();
+        $groups=[];
+        if($products->isNotEmpty()){
+            $offers=(clone $eligible)->whereIn('o.album_id',$products->pluck('album_id')->unique()->all())
+                ->select('o.id','o.album_id','o.store_id','o.format','o.condition','o.price','o.image','o.url','s.name as store_name','s.logo_url')->orderBy('o.price')->orderBy('o.id')->get();
+            foreach($offers as $offer){
+                $key=$offer->album_id.'|'.$offer->format.'|'.$offer->condition;
+                if(!isset($groups[$key][$offer->store_id]))$groups[$key][$offer->store_id]=$offer;
+            }
+        }
+        foreach($products as $product){
+            $group=$groups[$product->album_id.'|'.$product->format.'|'.$product->condition]??[];
+            $product->image=$group[$store->id]->image??null;
+            if(!$product->image)foreach($group as $offer)if($offer->image){$product->image=$offer->image;break;}
+            unset($group[$store->id]);
+            $product->competitors=array_slice(array_values($group),0,3);
+        }
+        return view('portal.prices',compact('store','filters','products'));
     }
     public function correctionForm(int $offer){
         $store=$this->store();$offer=Offer::where('store_id',$store->id)->findOrFail($offer);
