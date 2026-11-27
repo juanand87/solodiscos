@@ -4,6 +4,8 @@ Las fuentes evaluadas que se dejaron para una etapa posterior están guardadas e
 
 ## Diseño del sitio
 
+El catálogo permite mostrar 25, 50, 100 o 250 discos por página. Las fichas incluyen un botón visible para volver al catálogo al principio y al final; se conservan página, filtros, orden, tamaño de página y posición de desplazamiento. La URL de regreso se limita al catálogo local. Los logos tienen flechas, avance automático y pausa; los banners avanzan cada seis segundos. Se respeta la preferencia de movimiento reducido y se detiene la reproducción al ocultarse la pestaña. El acceso administrativo permanece en `/admin` y `/login`, sin botón en la navegación pública.
+
 La portada incluye una fotografía editorial original, un carrusel de tres banners con controles de pausa y navegación, una franja de tiendas, tarjetas de discos con sus portadas reales, filtros y ordenación por artista, cantidad de tiendas o actualización reciente. Los banners inferiores llevan a CDs o vinilos. La ficha mantiene las ofertas y descripciones de cada vendedor, con un diseño adaptado a móvil.
 
 La imagen propia fue generada con la herramienta integrada de imágenes. Original: `app/public/images/vinyl-editorial.png`; versión web optimizada: `app/public/images/vinyl-editorial.jpg`; prompt: `design/banner-prompt.txt`. Las otras portadas y logos siguen procediendo del catálogo importado. Los textos de banners son HTML y se editan en `app/resources/views/storefront/hero.blade.php`. El diseño público vive en `app/public/storefront.css` y el carrusel en `app/public/storefront.js`. No se agregaron servicios de pago, suscripciones ni formularios promocionales ficticios.
