@@ -1,7 +1,7 @@
 @extends('layout')
 @section('title','Historial de precios · '.$offer->title.' · SoloDiscos')
 @section('content')
-<link rel="stylesheet" href="{{ asset('discounts.css') }}?v=1">
+<link rel="stylesheet" href="{{ asset('discounts.css') }}?v=2">
 <a class="catalog-back-button" href="{{ route('discounts',['store_id'=>$offer->store_id]) }}">← Descuentos de {{ $offer->store->name }}</a>
 <section class="panel"><span class="eyebrow">{{ $offer->store->name }}</span><h1>{{ $offer->title }}</h1><p>{{ $offer->format==='cd'?'CD':'Vinilo' }} · {{ ['new'=>'Nuevo','used'=>'Usado'][$offer->condition]??'Sin especificar' }} · Precio actual: <strong>${{ number_format($offer->price,0,',','.') }}</strong> + envío</p>
 @if($baseline && $baseline->drop_percent>0)<p class="discount-percent">↓ {{ number_format($baseline->drop_percent,1,',','.') }}% desde el primer precio válido de ${{ number_format($baseline->initial_price,0,',','.') }}, registrado el {{ Carbon\Carbon::parse($baseline->initial_at)->format('d/m/Y H:i') }}.</p>@endif
