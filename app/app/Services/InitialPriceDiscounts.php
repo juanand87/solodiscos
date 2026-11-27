@@ -11,7 +11,7 @@ class InitialPriceDiscounts {
             ->where('s.active',true)->whereNull('o.excluded_reason')->whereNull('o.missing_since')->where('o.availability','in_stock')->where('o.currency','CLP')->where('o.price','>',0)
             ->whereIn('o.format',['cd','vinyl'])->where('o.checked_at','>=',now()->subHours(72))
             ->select('o.id','o.album_id','o.store_id','o.title','o.image','o.price','o.currency','o.format','o.condition','o.checked_at','s.name as store_name','s.logo_url','a.artist','a.title as album_title',
-                'initial.price as initial_price','initial.created_at as initial_at')->selectRaw('100*(initial.price-o.price)/initial.price as drop_percent');
+                'initial.price as initial_price','initial.created_at as initial_at')->selectRaw('100.0*(initial.price-o.price)/initial.price as drop_percent');
     }
     public function attach($offers): void {
         if($offers->isEmpty())return;

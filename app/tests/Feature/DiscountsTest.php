@@ -35,6 +35,20 @@ class DiscountsTest extends TestCase {
         $response=$this->get(route('discounts',['store_id'=>$wanted->store_id,'format'=>'cd','condition'=>'new','q'=>'Artist']))->assertOk();$page=$response->viewData('products');$this->assertSame(14,$page->total());$this->assertCount(12,$page->items());$this->assertStringContainsString('format=cd',$page->url(2));$this->assertStringContainsString('store_id='.$wanted->store_id,$page->url(2));
         $this->assertSame(0,$this->get(route('discounts',['store_id'=>$wanted->store_id,'format'=>'vinyl']))->viewData('products')->total());
     }
+    public function test_discount_sorting_uses_percentage_in_both_directions_with_filters_and_stable_ties(): void {
+        $a=$this->offer('one',70000);$this->observe($a,100000,now()->subDay(),'CLP');
+        $b=$this->offer('one',10000);$this->observe($b,20000,now()->subDay(),'CLP');
+        $c=$this->offer('one',30000);$this->observe($c,40000,now()->subDay(),'CLP');
+        $d=$this->offer('one',14000);$this->observe($d,20000,now()->subDay(),'CLP');
+        $other=$this->offer('other',5000);$this->observe($other,20000,now()->subDay(),'CLP');
+        $filters=['store_id'=>$a->store_id,'format'=>'cd','condition'=>'new','q'=>'Artist'];
+        $descending=$this->get(route('discounts',$filters))->assertOk()->assertSee('Mayor descuento')->assertSee('Menor descuento')->viewData('products');
+        $this->assertSame([$b->id,$a->id,$d->id,$c->id],$descending->pluck('id')->all());
+        $ascending=$this->get(route('discounts',$filters+['sort'=>'percent_asc']))->assertOk()->viewData('products');
+        $this->assertSame([$c->id,$a->id,$d->id,$b->id],$ascending->pluck('id')->all());
+        $this->assertStringContainsString('sort=percent_asc',$ascending->url(2));
+        $this->assertStringContainsString('store_id='.$a->store_id,$ascending->url(2));
+    }
     public function test_first_observation_uses_time_then_id_and_ignores_future_observations(): void {
         $offer=$this->offer();$this->observe($offer,35000,now()->subDay(),'CLP');$this->observe($offer,40000,now()->subDays(3),'CLP');$this->observe($offer,99900,now()->addDay(),'CLP');
         $data=$this->get(route('discounts'))->assertOk()->viewData('products')->first();$this->assertEquals(40000,$data->initial_price);

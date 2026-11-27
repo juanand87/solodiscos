@@ -7,11 +7,11 @@ use Illuminate\Validation\Rule;
 
 class DiscountController extends Controller {
     public function index(Request $r,InitialPriceDiscounts $discounts){
-        $filters=$r->validate(['store_id'=>'nullable|integer|exists:stores,id','format'=>['nullable',Rule::in(['cd','vinyl'])],'condition'=>['nullable',Rule::in(['new','used','unknown'])],'q'=>'nullable|string|max:150','sort'=>['nullable',Rule::in(['percent','recent','price'])]]);
+        $filters=$r->validate(['store_id'=>'nullable|integer|exists:stores,id','format'=>['nullable',Rule::in(['cd','vinyl'])],'condition'=>['nullable',Rule::in(['new','used','unknown'])],'q'=>'nullable|string|max:150','sort'=>['nullable',Rule::in(['percent','percent_asc','recent','price'])]]);
         $query=$discounts->query()->whereColumn('o.price','<','initial.price');
         foreach(['store_id','format','condition'] as $field)if(!empty($filters[$field]))$query->where('o.'.$field,$filters[$field]);
         if(!empty($filters['q']))$query->where(fn($q)=>$q->where('a.artist','like','%'.$filters['q'].'%')->orWhere('a.title','like','%'.$filters['q'].'%')->orWhere('o.title','like','%'.$filters['q'].'%'));
-        match($filters['sort']??'percent'){'recent'=>$query->orderByDesc('o.checked_at'),'price'=>$query->orderBy('o.price'),default=>$query->orderByRaw('(initial.price-o.price)/initial.price DESC')};
+        match($filters['sort']??'percent'){'percent_asc'=>$query->orderByRaw('100.0*(initial.price-o.price)/initial.price ASC'),'recent'=>$query->orderByDesc('o.checked_at'),'price'=>$query->orderBy('o.price'),default=>$query->orderByRaw('100.0*(initial.price-o.price)/initial.price DESC')};
         $products=$query->orderBy('o.id')->paginate(12)->withQueryString();
         return view('discounts',compact('products','filters')+['stores'=>Store::where('active',true)->orderBy('name')->get(['id','name']),'charts'=>$discounts->charts($products->items())]);
     }
