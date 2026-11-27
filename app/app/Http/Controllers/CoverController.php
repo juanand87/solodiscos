@@ -9,11 +9,11 @@ use Illuminate\Validation\ValidationException;
 
 class CoverController extends Controller {
     public function index(Request $r) {
-        $data=$r->validate(['status'=>['nullable',Rule::in(['pending','accepted','rejected','reverted','obsolete'])],'artist'=>'nullable|string|max:100']);
+        $data=$r->validate(['status'=>['nullable',Rule::in(['pending','accepted','rejected','reverted','obsolete'])],'artist'=>'nullable|string|max:100','per_page'=>'nullable|integer|in:100,200,300,400,500']);
         CoverMatch::retireStalePending();
-        $query=CoverMatch::with(['leftOffer.album','leftOffer.store','rightOffer.album','rightOffer.store','leftCover','rightCover'])->where('status',$data['status']??'pending');
+        $query=CoverMatch::with(['leftOffer:id,album_id,store_id,title,image,format,reviewed,url','rightOffer:id,album_id,store_id,title,image,format,reviewed,url','leftOffer.album:id,artist,title','leftOffer.store:id,name','rightOffer.album:id,artist,title','rightOffer.store:id,name','leftCover','rightCover'])->where('status',$data['status']??'pending');
         if(!empty($data['artist']))$query->whereHas('leftOffer.album',fn($q)=>$q->where('artist','like','%'.$data['artist'].'%'));
-        return view('cover-review',['matches'=>$query->orderBy('distance')->latest('id')->paginate(12)->withQueryString(),
+        return view('cover-review',['matches'=>$query->orderBy('distance')->latest('id')->paginate((int)($data['per_page']??100))->withQueryString(),
             'scan'=>CoverScan::latest('id')->first(),'pending'=>CoverMatch::where('status','pending')->count()]);
     }
     public function scan(Request $r,CoverScanDispatcher $dispatcher) {
@@ -29,18 +29,18 @@ class CoverController extends Controller {
         return response()->file($cover->thumbnailPath(),['Content-Type'=>'image/jpeg','X-Content-Type-Options'=>'nosniff','Cache-Control'=>'private, max-age=86400']);
     }
     public function accept(Request $r,CoverMatch $match,CoverReview $review) {
-        $data=$r->validate(['target'=>['required',Rule::in(['left','right'])],'confirm'=>'accepted']);
+        $data=$r->validate(['target'=>['required',Rule::in(['left','right'])]]);
         $count=$review->accept($match,$data['target'],$r->user()->id);
         CoverMatch::retireStalePending();
         return back()->with('status',"Agrupación aprobada: $count ofertas reclasificadas. Las correcciones manuales anteriores se conservaron.");
     }
     public function acceptPage(Request $r,CoverReview $review) {
-        $data=$r->validate(['page_token'=>'required|string','targets'=>'required|array|min:1|max:12',
+        $data=$r->validate(['page_token'=>'required|string','targets'=>'required|array|min:1|max:500',
             'targets.*'=>['required',Rule::in(['left','right'])],'confirm'=>'accepted']);
         try {$page=json_decode(Crypt::decryptString($data['page_token']),true,512,JSON_THROW_ON_ERROR);}
         catch(\Throwable $e){throw ValidationException::withMessages(['cover'=>'La página no es válida. Actualízala antes de aprobar.']);}
         $allowed=$page['ids']??[];
-        if(count($allowed)>12 || array_diff(array_keys($data['targets']),$allowed))
+        if(count($allowed)>500 || array_diff(array_keys($data['targets']),$allowed))
             throw ValidationException::withMessages(['cover'=>'Solo puedes aprobar las propuestas mostradas en esta página.']);
         $approved=0;$skipped=0;$offers=0;
         foreach($data['targets'] as $id=>$target){
@@ -50,7 +50,7 @@ class CoverController extends Controller {
             catch(ValidationException $e){$skipped++;}
         }
         CoverMatch::retireStalePending();
-        return redirect()->route('covers.index',['status'=>'pending','artist'=>$page['artist']??null])->with('status',
+        return redirect()->route('covers.index',['status'=>'pending','artist'=>$page['artist']??null,'per_page'=>in_array($page['per_page']??100,[100,200,300,400,500],true)?($page['per_page']??100):100])->with('status',
             "$approved propuestas aprobadas; $offers ofertas agrupadas. $skipped propuestas omitidas por cambios de datos, revisiones anteriores o clasificación manual protegida. Se muestran las siguientes pendientes.");
     }
     public function reject(Request $r,CoverMatch $match,CoverReview $review) {

@@ -18,7 +18,7 @@ class CatalogStatistics {
         return $query;
     }
     public function listing(array $filters) {
-        return $this->query($filters)->select('e.*','o.title','o.format','o.url','o.image','a.artist','a.title as album_title','s.name as store_name')
+        return $this->query($filters)->select('e.*','o.album_id','o.title','o.format','o.url','o.image','a.artist','a.title as album_title','s.name as store_name')
             ->orderByDesc('e.occurred_at')->orderByDesc('e.id');
     }
     public function summary(array $filters): array {

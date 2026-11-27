@@ -71,6 +71,23 @@ class EngagementTest extends TestCase {
         $this->assertSame(8,$report['views']);$this->assertSame(2,$report['clicks']);
         $this->actingAs(User::factory()->create(),'web')->get(route('statistics.index'))->assertOk()->assertSee('engagement-bar-views')->assertSee('Ver valores diarios');
     }
+    public function test_private_disc_modal_scopes_six_calendar_months_and_rejects_foreign_offers(): void {
+        $this->travelTo(\Carbon\Carbon::parse('2026-11-27 15:00:00'));
+        $store=$this->store('one');$own=$this->offer($store);$own->update(['image'=>'https://one.example/cover.jpg']);
+        $foreign=$this->offer($this->store('two'),$own->album);
+        DB::table('engagement_state')->where('id',1)->update(['started_at'=>'2026-07-15 10:00:00']);
+        $this->metric('click',$own,3,'2026-07-20');$this->metric('click',$own,2,'2026-11-27');$this->metric('click',$own,99,'2026-05-31');$this->metric('click',$foreign,40,'2026-11-27');
+        $url=route('portal.statistics.disc',[$own->album_id,'cd']);$admin=route('statistics.disc',[$own->album_id,'cd']);
+        $this->getJson($admin)->assertUnauthorized();$this->get($url)->assertRedirect(route('portal.login'));
+        $this->actingAs($this->account($store),'store')->getJson($url.'?store_id='.$foreign->store_id)->assertOk()->assertJsonPath('total',5)->assertJsonCount(6,'months')->assertJsonPath('months.0.month','2026-06')->assertJsonPath('months.0.measured',false)->assertJsonPath('months.1.clicks',3)->assertJsonPath('months.5.clicks',2)->assertJsonPath('image','https://one.example/cover.jpg');
+        $this->getJson($url.'?offer_id='.$foreign->id)->assertNotFound();
+        $this->getJson(route('portal.statistics.disc',[$own->album_id,'vinyl']))->assertNotFound();
+        $this->getJson($admin)->assertUnauthorized();
+        $this->actingAs(User::factory()->create(),'web')->getJson($admin)->assertOk()->assertJsonPath('total',45);
+        $this->getJson($admin.'?store_id='.$store->id.'&offer_id='.$own->id)->assertOk()->assertJsonPath('total',5)->assertHeader('Cache-Control','no-store, private');
+        $this->get(route('statistics.index'))->assertOk()->assertSee('data-disc-detail',false)->assertSee('data-disc-modal',false)->assertSee('Resumen por tienda')->assertSee('Todos los movimientos');
+        $this->travelBack();
+    }
     public function test_restock_can_use_existing_possible_sales_without_any_traffic_measurement(): void {
         $store=$this->store('one');$own=$this->offer($store);$own->update(['availability'=>'out_of_stock']);$other=$this->offer($this->store('two'),$own->album);
         DB::table('offer_events')->insert(['event_key'=>'restock-sale','offer_id'=>$other->id,'store_id'=>$other->store_id,'type'=>'possible_sale','occurred_at'=>now(),'availability'=>'in_stock','initial_load'=>false,'historical'=>false,'units'=>2]);

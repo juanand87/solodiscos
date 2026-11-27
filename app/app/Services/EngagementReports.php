@@ -58,7 +58,15 @@ class EngagementReports {
             ->leftJoinSub($sales,'sales',fn($j)=>$j->on('sales.album_id','=','x.album_id')->on('sales.format','=','x.format')->on('sales.condition','=','x.condition'))
             ->where(fn($q)=>$q->where('i.views','>',0)->orWhere('sales.units','>',0))->select('x.*','a.artist','a.title','m.stores')->selectRaw('COALESCE(i.views,0) as views, COALESCE(sales.units,0) as units')
             ->orderByDesc('views')->orderByDesc('units')->orderBy('x.album_id')->limit(15)->get();
-        return ['started'=>$started,'views'=>(int)($counts[$viewKind]??0),'clicks'=>(int)($counts['click']??0),'series'=>$series,'topViews'=>$top($viewKind),
+        $topViews=$top($viewKind);
+        $items=$topViews->concat($topProducts)->concat($scarce)->concat($replenish);
+        $covers=DB::table('offers')->whereIn('album_id',$items->pluck('album_id')->unique())->whereNotNull('image')->where('image','!=','');
+        if(!empty($f['store_id']))$covers->where('store_id',$f['store_id']);
+        $coverIds=$covers->selectRaw('MIN(id) as id')->groupBy('album_id','format');
+        $images=DB::table('offers')->whereIn('id',$coverIds)->orWhereIn('id',$items->pluck('offer_id')->filter())->get(['id','album_id','format','image']);
+        $byAlbum=$images->keyBy(fn($o)=>$o->album_id.':'.$o->format);$byOffer=$images->keyBy('id');
+        foreach($items as $item)$item->image=($byOffer->get($item->offer_id??0)??$byAlbum->get($item->album_id.':'.$item->format))?->image;
+        return ['started'=>$started,'views'=>(int)($counts[$viewKind]??0),'clicks'=>(int)($counts['click']??0),'series'=>$series,'topViews'=>$topViews,
             'topClicks'=>$topProducts,'byStore'=>$byStore,'scarce'=>$scarce,'replenish'=>$replenish];
     }
 }

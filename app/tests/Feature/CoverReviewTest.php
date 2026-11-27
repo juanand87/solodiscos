@@ -61,11 +61,22 @@ class CoverReviewTest extends TestCase {
         $this->post(route('covers.scan'),['artist'=>'Adele','limit'=>25])->assertRedirect();Queue::assertPushed(\App\Jobs\ScanCovers::class,1);$this->assertDatabaseCount('cover_scans',1);
         $this->getJson(route('covers.progress'))->assertOk()->assertJsonPath('scan.status','queued');$this->assertDatabaseCount('cover_matches',0);
     }
-    public function test_reviewer_needs_explicit_confirmation_and_can_view_cached_images(): void {
+    public function test_reviewer_can_approve_without_checkbox_and_view_cached_images(): void {
         [$a,$b,$match]=$this->pair();$this->actingAs(User::factory()->create());
-        $this->get(route('covers.index'))->assertOk()->assertSee('25 CAN')->assertSee('Distancia pHash');
+        $this->get(route('covers.index'))->assertOk()->assertSee('25 CAN')->assertSee('Distancia pHash')->assertDontSee('Confirmo que son el mismo álbum y formato.');
         $this->get(route('covers.thumbnail',CoverFingerprint::first()))->assertOk()->assertHeader('Content-Type','image/jpeg');
-        $this->post(route('covers.accept',$match),['target'=>'left'])->assertSessionHasErrors('confirm');$this->assertFalse($b->fresh()->reviewed);
+        $this->post(route('covers.accept',$match),['target'=>'left'])->assertSessionHasNoErrors();$this->assertTrue($b->fresh()->reviewed);
+    }
+    public function test_cover_pagination_allows_up_to_500_and_bulk_token_accepts_large_pages(): void {
+        [$a,$b,$match]=$this->pair();$this->actingAs(User::factory()->create());
+        for($i=0;$i<500;$i++){$copy=$match->replicate();$copy->signature=hash('sha256','page-'.$i);$copy->save();}
+        $this->assertSame(100,$this->get(route('covers.index'))->assertOk()->viewData('matches')->perPage());
+        $page=$this->get(route('covers.index',['per_page'=>500,'artist'=>'Adele']))->assertOk()->viewData('matches');
+        $this->assertCount(500,$page->items());$this->assertSame(501,$page->total());$this->assertStringContainsString('per_page=500',$page->url(2));$this->assertStringContainsString('artist=Adele',$page->url(2));
+        $this->get(route('covers.index',['per_page'=>600]))->assertSessionHasErrors('per_page');
+        $token=\Illuminate\Support\Facades\Crypt::encryptString(json_encode(['ids'=>$page->pluck('id')->all(),'artist'=>'Adele','per_page'=>500]));
+        $targets=$page->take(13)->mapWithKeys(fn($m)=>[$m->id=>'left'])->all();
+        $this->post(route('covers.accept-page'),['page_token'=>$token,'targets'=>$targets,'confirm'=>1])->assertSessionHasNoErrors()->assertRedirect(route('covers.index',['status'=>'pending','artist'=>'Adele','per_page'=>500]));
     }
     public function test_image_fetcher_rejects_private_addresses_without_making_requests(): void {
         $this->expectException(\RuntimeException::class);(new StoreClient)->imageBytes('http://127.0.0.1/private.jpg');
@@ -77,7 +88,7 @@ class CoverReviewTest extends TestCase {
         [$a,$b,$match]=$this->pair();$unseen=$match->replicate();$unseen->signature=hash('sha256','another-page');$unseen->save();
         $this->actingAs(User::factory()->create());
         $this->post(route('covers.accept-page'),['page_token'=>$this->pageToken([$match->id]),'targets'=>[$match->id=>'left'],'confirm'=>1])
-            ->assertRedirect(route('covers.index',['status'=>'pending','artist'=>'Adele']))->assertSessionHasNoErrors();
+            ->assertRedirect(route('covers.index',['status'=>'pending','artist'=>'Adele','per_page'=>100]))->assertSessionHasNoErrors();
         $this->assertSame('accepted',$match->fresh()->status);$this->assertSame('obsolete',$unseen->fresh()->status);
         $this->assertSame($a->album_id,$b->fresh()->album_id);
         $this->post(route('covers.undo',$match))->assertSessionHasNoErrors();$this->assertSame($match->right_album_id,$b->fresh()->album_id);

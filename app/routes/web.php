@@ -38,6 +38,7 @@ Route::prefix('tiendas')->name('portal.')->group(function(){
         Route::get('/',[$portal,'dashboard'])->name('dashboard');
         Route::get('/catalogo',[$portal,'catalog'])->name('catalog');
         Route::get('/estadisticas',[$portal,'statistics'])->name('statistics');
+        Route::get('/estadisticas/discos/{album}/{format}',\App\Http\Controllers\EngagementDetailController::class)->whereNumber('album')->where('format','cd|vinyl')->name('statistics.disc');
         Route::get('/precios',[$portal,'prices'])->name('prices');
         Route::get('/solicitudes',[$portal,'corrections'])->name('corrections');
         Route::get('/catalogo/{offer}/corregir',[$portal,'correctionForm'])->whereNumber('offer')->name('correction');
@@ -55,6 +56,7 @@ Route::middleware('auth:web')->prefix('admin')->group(function() {
     Route::get('/rankings/estadisticas',[\App\Http\Controllers\RankingController::class,'index'])->name('admin.rankings.statistics');
     Route::get('/rankings/{store}/comparados/{condition}',[\App\Http\Controllers\RankingController::class,'sample'])->where('condition','new|used|all')->name('admin.rankings.sample');
     Route::get('/estadisticas',[\App\Http\Controllers\StatisticsController::class,'index'])->name('statistics.index');
+    Route::get('/estadisticas/discos/{album}/{format}',\App\Http\Controllers\EngagementDetailController::class)->whereNumber('album')->where('format','cd|vinyl')->name('statistics.disc');
     Route::get('/estadisticas/exportar',[\App\Http\Controllers\StatisticsController::class,'export'])->name('statistics.export');
     Route::get('/progreso',[AdminController::class,'progress'])->name('admin.progress');
     Route::post('/procesar-pendientes',[AdminController::class,'processQueue'])->middleware('throttle:3,1')->name('admin.queue.start');

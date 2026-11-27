@@ -340,3 +340,13 @@ Solo aparecen publicaciones válidas de tiendas activas, con stock, comprobadas 
 Las tarjetas muestran portada, vendedor, porcentaje, importe, primer precio y gráfico. `/descuentos/{offer}` ofrece el historial completo paginado de 50 registros válidos por página. El gráfico comprime repeticiones y resume hasta 200 puntos conservando extremos; la tabla mantiene los registros originales. La línea une observaciones, no prueba el precio entre comprobaciones. Las fichas muestran el porcentaje por tienda y el catálogo destaca la bajada de su oferta más barata en CLP cuando corresponde.
 
 La migración `2026_11_27_170000_index_offer_price_history` agrega únicamente un índice a `offer_observations`; no crea tablas ni modifica precios o historial. Tras subir los archivos, ejecutar desde `app`: `php artisan config:clear`, `php artisan route:clear`, `php artisan view:clear`, `php artisan migrate --force`, `php artisan config:cache`. Conservar el `.env` del servidor. Validación: `php artisan test --filter=DiscountsTest`.
+
+### Portadas y detalle de clics en estadísticas
+
+Los listados de interés, clics, poca disponibilidad y reposiciones incorporan miniaturas. Al pulsarlas se abre un modal con portada y clics mensuales de los últimos seis meses calendario, incluido el actual. El detalle mantiene el formato y el ámbito de tienda/publicación de la fila; no hereda las fechas del listado. Los meses anteriores al inicio de la medición se identifican como «Sin medición». La información se consulta al abrir el modal, sin precargar cientos de series.
+
+Los endpoints `/admin/estadisticas/discos/{album}/{format}` y `/tiendas/estadisticas/discos/{album}/{format}` requieren sus respectivas sesiones. El portal fuerza la tienda de la cuenta y rechaza publicaciones ajenas aunque se alteren los parámetros. Las respuestas no se cachean. No hay nuevas tablas ni migraciones. Los movimientos de stock/precio, cuadros de movimientos, resumen por tienda y CSV permanecen exclusivamente en el administrador; el portal de tiendas muestra interés y oportunidades.
+
+### Paginación de revisión de portadas
+
+La revisión admite 100, 200, 300, 400 o 500 propuestas por página, con 100 por defecto. La aprobación individual se realiza con el botón, sin casilla adicional. La aprobación de página admite hasta 500 propuestas del token cifrado emitido para esa página y conserva la cantidad seleccionada al regresar. Siguen vigentes las comprobaciones de artista, formato, datos actuales, correcciones manuales y pertenencia a la página; no se aprueban propuestas mediante solicitudes GET. Se cargan solo los campos necesarios de las ofertas para limitar memoria con páginas grandes.

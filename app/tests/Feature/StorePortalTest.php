@@ -93,9 +93,10 @@ class StorePortalTest extends TestCase {
         $store=$this->store();$other=$this->store('other.example');$account=$this->account($store);$own=$this->offer($store);$foreign=$this->offer($other,'Foreign statistic');
         foreach([[$own,2],[$foreign,99]] as [$offer,$units])DB::table('offer_events')->insert(['event_key'=>'sale-'.$offer->id,'offer_id'=>$offer->id,'store_id'=>$offer->store_id,'type'=>'possible_sale','occurred_at'=>now(),'availability'=>'in_stock','initial_load'=>false,'historical'=>false,'units'=>$units,'stock_before'=>3,'stock_after'=>1]);
         $response=$this->actingAs($account,'store')->get(route('portal.statistics',['store_id'=>$other->id,'from'=>now()->toDateString(),'to'=>now()->toDateString(),'format'=>'cd']))->assertOk()->assertDontSee($foreign->title);
-        $this->assertEquals(2,$response->viewData('counts')['possible_sale']);
-        $this->assertCount(0,$this->get(route('portal.statistics',['format'=>'vinyl']))->viewData('topSales'));
-        $this->assertCount(0,$this->get(route('portal.statistics',['from'=>now()->subDays(10)->toDateString(),'to'=>now()->subDays(5)->toDateString()]))->viewData('events')->items());
+        $response->assertDontSee('Movimientos detectados')->assertDontSee('Cambios de precio')->assertDontSee('Resumen por tienda')->assertDontSee('El filtro de movimiento');
+        $this->assertSame($store->id,$response->viewData('filters')['store_id']);
+        $this->assertSame(0,$this->get(route('portal.statistics',['format'=>'vinyl']))->viewData('metrics')['clicks']);
+        $this->assertSame([],$this->get(route('portal.statistics',['from'=>now()->subDays(10)->toDateString(),'to'=>now()->subDays(5)->toDateString()]))->viewData('metrics')['series']);
     }
     public function test_prices_deduplicate_own_offers_include_ties_and_separate_condition(): void {
         $store=$this->store();$other=$this->store('other.example');$own=$this->offer($store);$this->offer($store,'Duplicate own',11000,$own->album);$foreign=$this->offer($other,'Foreign price',9000,$own->album);

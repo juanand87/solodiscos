@@ -1,7 +1,6 @@
 <?php
 namespace App\Http\Controllers;
 use App\Models\{Offer,StoreCorrection};
-use App\Services\{CatalogStatistics,OfferEvents};
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\{Auth,DB};
 use Illuminate\Validation\Rule;
@@ -32,12 +31,11 @@ class StorePortalController extends Controller {
         }
         return view('portal.catalog',compact('store','filters')+['offers'=>$query->orderBy('title')->orderBy('id')->paginate(25)->withQueryString()]);
     }
-    public function statistics(Request $r,CatalogStatistics $statistics){
+    public function statistics(Request $r){
         $r->merge(['from'=>$r->input('from')?:now()->subDays(29)->toDateString(),'to'=>$r->input('to')?:now()->toDateString()]);
-        $filters=$r->validate(['from'=>'required|date_format:Y-m-d','to'=>'required|date_format:Y-m-d|after_or_equal:from','format'=>['nullable',Rule::in(['cd','vinyl'])],'type'=>['nullable',Rule::in(array_keys(OfferEvents::TYPES))]]);
+        $filters=$r->validate(['from'=>'required|date_format:Y-m-d','to'=>'required|date_format:Y-m-d|after_or_equal:from','format'=>['nullable',Rule::in(['cd','vinyl'])]]);
         $store=$this->store();$filters['store_id']=$store->id;
-        $topSales=$statistics->query($filters,false)->where('e.type','possible_sale')->groupBy('o.id','o.title','o.format')->select('o.id','o.title','o.format')->selectRaw('SUM(e.units) as units')->orderByDesc('units')->limit(10)->get();
-        return view('portal.statistics',compact('store','filters','topSales')+$statistics->summary($filters)+['metrics'=>app(\App\Services\EngagementReports::class)->report($filters),'types'=>OfferEvents::TYPES,'events'=>$statistics->listing($filters)->paginate(25)->withQueryString()]);
+        return view('portal.statistics',compact('store','filters')+['metrics'=>app(\App\Services\EngagementReports::class)->report($filters)]);
     }
     public function corrections(){
         $store=$this->store();return view('portal.corrections',compact('store')+['corrections'=>StoreCorrection::with('offer')->where('store_id',$store->id)->latest()->paginate(20)]);
