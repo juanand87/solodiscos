@@ -53,11 +53,6 @@ return [
                     '«Ahorra hasta» expresa la diferencia entre el menor y el mayor precio de las alternativas mostradas. No es un descuento histórico ni garantiza que las ediciones sean idénticas. El envío no forma parte del cálculo.',
                     'Las bajadas de precio históricas se calculan con las observaciones que registra SoloDiscos de una publicación de la misma tienda. Una diferencia entre tiendas y una bajada histórica son medidas distintas.',
                 ]],
-                ['title' => 'Actualización e independencia', 'paragraphs' => [
-                    'El ranking se recalcula con los datos registrados y puede utilizar resultados guardados durante hasta cinco minutos. Recalcularlo no equivale a consultar nuevamente todos los sitios. La frecuencia y el éxito de cada extracción condicionan la actualidad de la información.',
-                    'El orden del Top 10 se determina por el cálculo de precios descrito. Una aparición en el catálogo o un logo no prueba que la tienda haya pagado por estar allí. Cualquier publicidad o enlace de afiliación que se incorpore deberá identificarse y distinguirse del orden calculado.',
-                    'Las bajas de stock son indicios de posibles copias vendidas, no ventas confirmadas: también pueden deberse a ajustes, retiros o cambios del catálogo. SoloDiscos no conoce las transacciones de cada vendedor.',
-                ]],
             ],
         ],
         'privacidad' => [
@@ -66,7 +61,8 @@ return [
             'intro' => 'Esta página describe el uso de información al navegar por SoloDiscos.cl. No solicitamos datos de pago para comprar discos.',
             'sections' => [
                 ['title' => 'Información utilizada por el sitio', 'paragraphs' => [
-                    'Puedes consultar el catálogo sin crear una cuenta de comprador. Las cuentas de acceso existentes corresponden a la administración del servicio.',
+                    'Puedes consultar el catálogo sin crear una cuenta de comprador. Las cuentas corresponden a la administración del servicio y a personas que gestionan tiendas incorporadas a SoloDiscos.',
+                    'Al registrarte como tienda guardamos tu nombre, correo del dominio, contraseña protegida mediante hash, verificación y solicitudes de corrección. Utilizamos estos datos para autenticarte, verificar el acceso al dominio, enviar mensajes de verificación o recuperación y gestionar tus solicitudes. No publiques datos de compradores en ellas.',
                     'Para entregar las páginas y proteger el servicio, el alojamiento y la aplicación pueden registrar información técnica, como dirección IP, fecha, URL solicitada, navegador y errores. Los términos de búsqueda pueden formar parte de las URL; evita introducir datos personales o sensibles en el buscador.',
                     'Estos datos técnicos se utilizan para el funcionamiento del sitio, la autenticación administrativa y la detección y resolución de errores o abusos. Los proveedores de alojamiento intervienen en la infraestructura y sus registros técnicos.',
                 ]],
@@ -114,7 +110,6 @@ return [
             'sections' => [
                 ['title' => 'Origen y atribución de la información', 'paragraphs' => [
                     'SoloDiscos consulta catálogos públicos para mostrar títulos, precios, formato, condición, imágenes y descripciones, junto con la tienda y el enlace de origen. La disponibilidad depende de lo que cada sitio permite identificar y del resultado de la última consulta.',
-                    'Los nombres, logos, portadas y descripciones pertenecen a sus respectivos titulares. Su aparición identifica la fuente o el producto; no implica que exista una autorización, patrocinio o acuerdo comercial con SoloDiscos.',
                 ]],
                 ['title' => 'Qué puede necesitar una revisión', 'items' => [
                     'Un precio, disponibilidad, enlace, nombre o logo incorrecto.',
@@ -122,13 +117,10 @@ return [
                     'Una condición de nuevo o usado que no corresponda a la publicación.',
                     'Información sobre incorporación o retiro de una tienda y asuntos relacionados con los derechos sobre los contenidos.',
                 ]],
-                ['title' => 'Información útil para una corrección', 'paragraphs' => [
-                    'Para revisar una discrepancia se necesita el enlace de SoloDiscos, el enlace de origen, el dato incorrecto y la información que permita contrastarlo. No es necesario aportar datos de compradores, números de tarjeta o claves de acceso.',
-                    'El canal público para estas solicitudes está pendiente de incorporación. No ofrecemos todavía un formulario de recepción ni un plazo de respuesta. Los cambios del catálogo se reflejan cuando la publicación vuelve a consultarse o se revisa su clasificación.',
-                ]],
-                ['title' => 'Alcance de una recomendación', 'paragraphs' => [
-                    'La posición en el ranking depende de los productos comparables y de los filtros, no del tamaño total del catálogo. Una muestra insuficiente no indica mala calidad ni falta de confianza en una tienda.',
-                    'Las correcciones no deben confundirse con la contratación de publicidad. Los espacios promocionales que se incorporen deberán identificarse por separado de los resultados calculados.',
+                ['title' => 'Correcciones desde el portal de tiendas', 'paragraphs' => [
+                    'Las tiendas activas incorporadas a SoloDiscos pueden registrar una cuenta con un correo del dominio exacto de su sitio. Para acceder deben confirmar la recepción de un enlace de verificación. Un correo de un dominio parecido o un correo personal no habilita el acceso.',
+                    'Desde el portal, cada tienda puede consultar su catálogo, sus estadísticas y solicitar la revisión de artista, álbum, formato, condición u otra clasificación. La solicitud debe indicar el producto y el dato correcto; no modifica automáticamente las publicaciones. El administrador revisa y responde, y la tienda puede consultar el estado y la respuesta en su cuenta.',
+                    'Para corregir precio o stock, la tienda debe actualizar la publicación de origen. SoloDiscos recogerá los cambios cuando vuelva a consultar el catálogo. El acceso al portal no permite editar otras tiendas ni alterar la posición calculada en el ranking.',
                 ]],
             ],
         ],

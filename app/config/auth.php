@@ -38,6 +38,7 @@ return [
     */
 
     'guards' => [
+        'store' => ['driver'=>'session','provider'=>'store_accounts'],
         'web' => [
             'driver' => 'session',
             'provider' => 'users',
@@ -62,6 +63,7 @@ return [
     */
 
     'providers' => [
+        'store_accounts' => ['driver'=>'eloquent','model'=>\App\Models\StoreAccount::class],
         'users' => [
             'driver' => 'eloquent',
             'model' => env('AUTH_MODEL', User::class),
@@ -93,6 +95,7 @@ return [
     */
 
     'passwords' => [
+        'store_accounts' => ['provider'=>'store_accounts','table'=>'store_password_reset_tokens','expire'=>60,'throttle'=>60],
         'users' => [
             'provider' => 'users',
             'table' => env('AUTH_PASSWORD_RESET_TOKEN_TABLE', 'password_reset_tokens'),

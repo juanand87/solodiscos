@@ -1,0 +1,7 @@
+@extends('portal.layout')
+@section('portal-title','Tu tienda en SoloDiscos')
+@section('portal-content')
+<div class="portal-cards">@foreach(['total'=>'Publicaciones registradas','published'=>'Publicadas','out_of_stock'=>'Sin stock informado','pending'=>'Identificación pendiente','excluded'=>'Excluidas'] as $key=>$label)<a class="panel" href="{{ route('portal.catalog',['state'=>$key==='total'?'':$key]) }}"><span>{{ $label }}</span><strong>{{ number_format($counts[$key],0,',','.') }}</strong></a>@endforeach</div>
+<section class="panel"><h2>Actualización de tu catálogo</h2><p>Última extracción completada: <strong>{{ $store->last_success_at?->format('d/m/Y H:i')??'Todavía no registrada' }}</strong>.</p>@if($lastRun)<p>Último intento: {{ $lastRun->created_at->format('d/m/Y H:i') }} · {{ ['queued'=>'En cola','running'=>'En ejecución','success'=>'Completada','warning'=>'Completada con observaciones','failed'=>'Falló','cancelled'=>'Cancelada'][$lastRun->status]??$lastRun->status }}.</p>@endif<p>Las publicaciones sin datos suficientes o sin una comprobación reciente pueden permanecer despublicadas, aunque estén registradas.</p><a href="{{ route('portal.catalog') }}">Revisar mi catálogo →</a></section>
+<section class="panel"><h2>Solicitudes de corrección</h2><p>{{ $pendingCorrections }} pendientes de revisión. Puedes consultar las respuestas en el portal.</p><a href="{{ route('portal.corrections') }}">Ver solicitudes →</a></section>
+@endsection

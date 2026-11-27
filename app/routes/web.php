@@ -12,9 +12,41 @@ Route::get('/rankings',[\App\Http\Controllers\RankingController::class,'index'])
 Route::get('/rankings/estadisticas',[\App\Http\Controllers\RankingController::class,'index'])->name('rankings.statistics');
 Route::get('/rankings/{store}/comparados/{condition}',[\App\Http\Controllers\RankingController::class,'sample'])->where('condition','new|used|all')->name('rankings.sample');
 Route::get('/album/{album}/{format?}',[CatalogController::class,'show'])->where('format','cd|vinyl')->name('album');
-Route::get('/login',[AdminController::class,'login'])->name('login')->middleware('guest');
-Route::post('/login',[AdminController::class,'authenticate'])->middleware('guest');
-Route::middleware('auth')->prefix('admin')->group(function() {
+Route::get('/login',[AdminController::class,'login'])->name('login')->middleware('guest:web');
+Route::post('/login',[AdminController::class,'authenticate'])->middleware('guest:web');
+Route::prefix('tiendas')->name('portal.')->group(function(){
+    $auth=\App\Http\Controllers\StorePortalAuthController::class;
+    $portal=\App\Http\Controllers\StorePortalController::class;
+    Route::get('/ingresar',fn()=>app($auth)->form())->name('login');
+    Route::post('/ingresar',[$auth,'login'])->middleware('throttle:5,1')->name('login.submit');
+    Route::get('/registro',fn()=>app($auth)->form('register'))->name('register');
+    Route::post('/registro',[$auth,'register'])->middleware('throttle:5,60')->name('register.submit');
+    Route::get('/recuperar',[$auth,'forgot'])->name('password.request');
+    Route::post('/recuperar',[$auth,'sendReset'])->middleware('throttle:3,1')->name('password.email');
+    Route::get('/recuperar/{token}',[$auth,'resetForm'])->name('password.reset');
+    Route::post('/restablecer',[$auth,'reset'])->middleware('throttle:5,1')->name('password.update');
+    Route::middleware(\App\Http\Middleware\StorePortalAccess::class.':no')->group(function()use($auth){
+        Route::get('/verificar',[$auth,'verification'])->name('verification');
+        Route::post('/verificar',[$auth,'resend'])->middleware('throttle:2,1')->name('resend');
+        Route::get('/verificar/{id}/{hash}',[$auth,'verify'])->middleware(['signed','throttle:6,1'])->name('verify');
+    });
+    Route::post('/salir',[$auth,'logout'])->middleware('throttle:10,1')->name('logout');
+    Route::middleware(\App\Http\Middleware\StorePortalAccess::class)->group(function()use($portal){
+        Route::get('/',[$portal,'dashboard'])->name('dashboard');
+        Route::get('/catalogo',[$portal,'catalog'])->name('catalog');
+        Route::get('/estadisticas',[$portal,'statistics'])->name('statistics');
+        Route::get('/precios',[$portal,'prices'])->name('prices');
+        Route::get('/solicitudes',[$portal,'corrections'])->name('corrections');
+        Route::get('/catalogo/{offer}/corregir',[$portal,'correctionForm'])->whereNumber('offer')->name('correction');
+        Route::post('/catalogo/{offer}/corregir',[$portal,'requestCorrection'])->whereNumber('offer')->middleware('throttle:10,1')->name('correction.submit');
+    });
+});
+Route::middleware('auth:web')->prefix('admin')->group(function() {
+    Route::get('/correo', [\App\Http\Controllers\PortalAdminController::class,'smtp'])->name('admin.smtp');
+    Route::put('/correo', [\App\Http\Controllers\PortalAdminController::class,'saveSmtp'])->middleware('throttle:10,1')->name('admin.smtp.save');
+    Route::post('/correo/prueba', [\App\Http\Controllers\PortalAdminController::class,'testSmtp'])->middleware('throttle:2,1')->name('admin.smtp.test');
+    Route::get('/solicitudes-tiendas', [\App\Http\Controllers\PortalAdminController::class,'corrections'])->name('admin.corrections');
+    Route::put('/solicitudes-tiendas/{correction}', [\App\Http\Controllers\PortalAdminController::class,'review'])->name('admin.corrections.review');
     Route::get('/',[AdminController::class,'index'])->name('admin');
     Route::get('/rankings',[\App\Http\Controllers\RankingController::class,'index'])->name('admin.rankings');
     Route::get('/rankings/estadisticas',[\App\Http\Controllers\RankingController::class,'index'])->name('admin.rankings.statistics');

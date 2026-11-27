@@ -294,3 +294,25 @@ Las páginas `/politicas/compras`, `/politicas/transparencia`, `/politicas/priva
 Por indicación del titular se usa únicamente SoloDiscos.cl, sin inventar identidad legal, RUT, domicilio ni correo. La identificación del responsable, los canales de privacidad y correcciones y los plazos de conservación siguen pendientes: el texto no constituye una declaración de cumplimiento legal completo. Las medidas de seguridad descritas son las verificadas en la aplicación; no se anuncian certificaciones o respaldos sin verificar. Revisar los textos al incorporar nuevos proveedores, analítica, afiliación, publicidad o cambios en el modelo.
 
 Después de actualizar el código en producción, ejecutar desde la carpeta `app`: `php artisan config:clear`, `php artisan route:clear` y `php artisan config:cache`. Esto incorpora el archivo de políticas en servidores que ya tenían la configuración cacheada; se conserva el `.env` del servidor.
+
+## Portal para tiendas
+
+Acceso público en `/tiendas/ingresar` y registro en `/tiendas/registro`, enlazados en el pie de página. Solo admite tiendas activas ya incorporadas al catálogo y correo del dominio exacto de su URL (sin `www`). No acepta subdominios diferentes, dominios parecidos ni correos personales. Cada persona del dominio puede registrar su propia cuenta. Los enlaces de verificación caducan en 60 minutos y requieren ingresar con la cuenta destinataria. No hay acceso al panel hasta verificar. Si se desactiva la tienda o cambia su dominio, sus cuentas dejan de acceder. No se reutiliza la tabla de administradores: el guard `store` y la tabla `store_accounts` son independientes de `web` y `users`.
+
+El portal incluye resumen, catálogo paginado con filtros y estados, comparación de precios, estadísticas por fecha y formato, recuperación de contraseña y solicitudes de corrección. Las consultas se limitan al `store_id` de la cuenta autenticada e ignoran parámetros de tienda enviados por el cliente. Las comparaciones se realizan por álbum, formato y condición, con stock y comprobación dentro de las últimas 72 horas; usan el mínimo por tienda y reconocen empates. Las estadísticas reutilizan el registro existente y distinguen posibles copias vendidas de ventas confirmadas. Esta etapa no incorpora medición de visitas ni atribución de compras.
+
+En `/admin/solicitudes-tiendas` el administrador revisa las solicitudes, abre la publicación para corregirla si procede y guarda una respuesta como «Resuelta» o «Rechazada». Cerrar una solicitud no modifica el catálogo: las correcciones se guardan primero desde el editor existente. Precio y stock continúan procediendo de las extracciones. La tienda ve el estado y la respuesta; no puede aprobar solicitudes ni editar publicaciones de otras tiendas.
+
+El administrador configura el envío en `/admin/correo` (enlace «Correo SMTP»). Host, puerto, usuario, contraseña, remitente y seguridad se almacenan en `smtp_settings`, sin reemplazar `.env`. La contraseña se cifra con `APP_KEY`, nunca se devuelve en el formulario ni se conserva como dato anterior de validación. No regenerar la clave en producción. Se exige TLS: STARTTLS suele utilizar 587 y TLS directo 465, según el proveedor. Guardar, habilitar y enviar una prueba antes de invitar a tiendas; el remitente debe estar autorizado por el proveedor. Verificación y recuperación se envían directamente por SMTP, sin depender del trabajador de la cola. La aceptación del envío por SMTP no garantiza recepción; comprobar también spam, SPF y DKIM. No se realizaron envíos reales sin credenciales.
+
+Despliegue: subir todos los archivos del cambio, conservar el `.env` y ejecutar desde `app`, en este orden:
+
+```bash
+php artisan config:clear
+php artisan route:clear
+php artisan view:clear
+php artisan migrate --force
+php artisan config:cache
+```
+
+La migración `2026_11_27_120000_create_store_portal` agrega cuatro tablas y no modifica el catálogo ni las cuentas administrativas. Hasta habilitar SMTP, el registro queda cerrado. Para comprobar aislamiento, dominios, firmas, caducidad, cifrado SMTP, recuperación, precios y solicitudes: `php artisan test --filter=StorePortalTest`.
