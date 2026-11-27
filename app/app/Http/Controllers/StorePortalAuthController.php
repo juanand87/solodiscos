@@ -3,7 +3,7 @@ namespace App\Http\Controllers;
 use App\Models\{Store,StoreAccount};
 use App\Services\{PortalMail,StoreDomain};
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\{Auth,Hash,Password};
+use Illuminate\Support\Facades\{Auth,Hash,Password,RateLimiter};
 use Illuminate\Support\Str;
 use Illuminate\Validation\Rules\Password as PasswordRule;
 use Illuminate\Validation\ValidationException;
@@ -27,7 +27,17 @@ class StorePortalAuthController extends Controller {
     public function login(Request $r){
         $r->merge(['email'=>strtolower(trim((string)$r->input('email')))]);
         $data=$r->validate(['email'=>'required|email','password'=>'required|string']);
-        if(!Auth::guard('store')->attempt($data))throw ValidationException::withMessages(['email'=>'Correo o contraseña incorrectos.']);
+        $key='portal-login:'.hash('sha256',$data['email'].'|'.$r->ip());
+        $ipKey='portal-login-ip:'.hash('sha256',(string)$r->ip());
+        if(RateLimiter::tooManyAttempts($key,5) || RateLimiter::tooManyAttempts($ipKey,30)){
+            $seconds=max(RateLimiter::availableIn($key),RateLimiter::availableIn($ipKey),1);
+            throw ValidationException::withMessages(['email'=>"Demasiados intentos fallidos. Espera $seconds segundos y vuelve a intentar."]);
+        }
+        if(!Auth::guard('store')->attempt($data)){
+            RateLimiter::hit($key,60);RateLimiter::hit($ipKey,60);
+            throw ValidationException::withMessages(['email'=>'Correo o contraseña incorrectos.']);
+        }
+        RateLimiter::clear($key);
         $r->session()->regenerate();return redirect()->route('portal.dashboard');
     }
     public function verification(){return view('portal.verify',['account'=>Auth::guard('store')->user()]);}

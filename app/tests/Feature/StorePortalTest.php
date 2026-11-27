@@ -44,6 +44,29 @@ class StorePortalTest extends TestCase {
         $this->post(route('portal.register'),['store_id'=>$store->id,'name'=>'Manager','email'=>'manager@shop.example','password'=>'ExamplePassword123','password_confirmation'=>'ExamplePassword123'])->assertSessionHasErrors('email');
         $this->assertDatabaseCount('store_accounts',0);
     }
+    public function test_successful_logins_do_not_exhaust_the_login_limit(): void {
+        $account=$this->account($this->store());
+        for($i=0;$i<8;$i++){
+            $this->post(route('portal.login.submit'),['email'=>$account->email,'password'=>'ExamplePassword123'])->assertRedirect(route('portal.dashboard'));
+            $this->post(route('portal.logout'))->assertRedirect(route('portal.login'));
+        }
+    }
+    public function test_registration_limit_does_not_block_login(): void {
+        $store=$this->store();$account=$this->account($store);
+        for($i=0;$i<5;$i++)$this->post(route('portal.register.submit'),['email'=>'invalid'])->assertSessionHasErrors();
+        $this->post(route('portal.register.submit'),['email'=>'invalid'])->assertStatus(429);
+        $this->post(route('portal.login.submit'),['email'=>$account->email,'password'=>'ExamplePassword123'])->assertRedirect(route('portal.dashboard'));
+    }
+    public function test_failed_login_limit_has_a_friendly_message_resets_on_success_and_expires(): void {
+        $account=$this->account($this->store());$valid=['email'=>$account->email,'password'=>'ExamplePassword123'];$invalid=['email'=>$account->email,'password'=>'wrong'];
+        for($i=0;$i<4;$i++)$this->post(route('portal.login.submit'),$invalid)->assertSessionHasErrors('email');
+        $this->post(route('portal.login.submit'),$valid)->assertRedirect(route('portal.dashboard'));$this->post(route('portal.logout'));
+        for($i=0;$i<5;$i++)$this->post(route('portal.login.submit'),$invalid)->assertSessionHasErrors('email');
+        $this->post(route('portal.login.submit'),$valid)->assertRedirect()->assertSessionHasErrors('email');
+        $this->assertStringContainsString('Demasiados intentos fallidos',session('errors')->first('email'));
+        $other=$this->account($this->store('other.example'));$this->post(route('portal.login.submit'),['email'=>$other->email,'password'=>'ExamplePassword123'])->assertRedirect(route('portal.dashboard'));$this->post(route('portal.logout'));
+        $this->travel(61)->seconds();$this->post(route('portal.login.submit'),$valid)->assertRedirect(route('portal.dashboard'));$this->travelBack();
+    }
     public function test_verification_requires_valid_signature_account_hash_and_unexpired_link(): void {
         $account=$this->account($this->store(),false);$this->actingAs($account,'store');
         $valid=URL::temporarySignedRoute('portal.verify',now()->addMinutes(60),['id'=>$account->id,'hash'=>sha1($account->email)]);

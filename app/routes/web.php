@@ -18,19 +18,19 @@ Route::prefix('tiendas')->name('portal.')->group(function(){
     $auth=\App\Http\Controllers\StorePortalAuthController::class;
     $portal=\App\Http\Controllers\StorePortalController::class;
     Route::get('/ingresar',fn()=>app($auth)->form())->name('login');
-    Route::post('/ingresar',[$auth,'login'])->middleware('throttle:5,1')->name('login.submit');
+    Route::post('/ingresar',[$auth,'login'])->name('login.submit');
     Route::get('/registro',fn()=>app($auth)->form('register'))->name('register');
-    Route::post('/registro',[$auth,'register'])->middleware('throttle:5,60')->name('register.submit');
+    Route::post('/registro',[$auth,'register'])->middleware('throttle:portal-register')->name('register.submit');
     Route::get('/recuperar',[$auth,'forgot'])->name('password.request');
-    Route::post('/recuperar',[$auth,'sendReset'])->middleware('throttle:3,1')->name('password.email');
+    Route::post('/recuperar',[$auth,'sendReset'])->middleware('throttle:portal-password-email')->name('password.email');
     Route::get('/recuperar/{token}',[$auth,'resetForm'])->name('password.reset');
-    Route::post('/restablecer',[$auth,'reset'])->middleware('throttle:5,1')->name('password.update');
+    Route::post('/restablecer',[$auth,'reset'])->middleware('throttle:portal-password-reset')->name('password.update');
     Route::middleware(\App\Http\Middleware\StorePortalAccess::class.':no')->group(function()use($auth){
         Route::get('/verificar',[$auth,'verification'])->name('verification');
-        Route::post('/verificar',[$auth,'resend'])->middleware('throttle:2,1')->name('resend');
-        Route::get('/verificar/{id}/{hash}',[$auth,'verify'])->middleware(['signed','throttle:6,1'])->name('verify');
+        Route::post('/verificar',[$auth,'resend'])->middleware('throttle:portal-resend')->name('resend');
+        Route::get('/verificar/{id}/{hash}',[$auth,'verify'])->middleware(['signed','throttle:portal-verify'])->name('verify');
     });
-    Route::post('/salir',[$auth,'logout'])->middleware('throttle:10,1')->name('logout');
+    Route::post('/salir',[$auth,'logout'])->middleware('throttle:portal-logout')->name('logout');
     Route::middleware(\App\Http\Middleware\StorePortalAccess::class)->group(function()use($portal){
         Route::get('/',[$portal,'dashboard'])->name('dashboard');
         Route::get('/catalogo',[$portal,'catalog'])->name('catalog');
@@ -38,7 +38,7 @@ Route::prefix('tiendas')->name('portal.')->group(function(){
         Route::get('/precios',[$portal,'prices'])->name('prices');
         Route::get('/solicitudes',[$portal,'corrections'])->name('corrections');
         Route::get('/catalogo/{offer}/corregir',[$portal,'correctionForm'])->whereNumber('offer')->name('correction');
-        Route::post('/catalogo/{offer}/corregir',[$portal,'requestCorrection'])->whereNumber('offer')->middleware('throttle:10,1')->name('correction.submit');
+        Route::post('/catalogo/{offer}/corregir',[$portal,'requestCorrection'])->whereNumber('offer')->middleware('throttle:portal-correction')->name('correction.submit');
     });
 });
 Route::middleware('auth:web')->prefix('admin')->group(function() {
