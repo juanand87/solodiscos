@@ -31,6 +31,15 @@ class EngagementTest extends TestCase {
         $this->assertEquals(1,DB::table('engagement_days')->where('kind','click')->sum('total'));$this->travel(61)->seconds();$this->get($url)->assertRedirect($offer->url);$this->assertEquals(2,DB::table('engagement_days')->where('kind','click')->sum('total'));$this->travelBack();
         $offer->update(['url'=>'https://evil.example/product']);$this->get($url)->assertNotFound();$offer->update(['url'=>'javascript:alert(1)']);$this->get($url)->assertNotFound();
     }
+    public function test_woocommerce_redirect_tags_the_origin_and_preserves_variation_and_fragment(): void {
+        $store=$this->store('woo');$store->update(['platform'=>'woocommerce']);$offer=$this->offer($store);
+        $offer->update(['url'=>$store->url.'/product?attribute_pa_color=azul&variation_id=123&utm_source=old&utm_medium=email#detalles']);
+        $response=$this->get(route('offers.visit',$offer).'?utm_source=attacker')->assertRedirect();
+        $parts=parse_url($response->headers->get('Location'));parse_str($parts['query'],$query);
+        $this->assertSame('woo.example',$parts['host']);$this->assertSame('/product',$parts['path']);$this->assertSame('detalles',$parts['fragment']);
+        $this->assertSame(['attribute_pa_color'=>'azul','variation_id'=>'123','utm_source'=>'solodiscos.cl','utm_medium'=>'referral','utm_campaign'=>'catalogo'],$query);
+        $this->assertSame($store->url.'/product?attribute_pa_color=azul&variation_id=123&utm_source=old&utm_medium=email#detalles',$offer->fresh()->url);
+    }
     public function test_bots_prefetch_admin_and_store_sessions_do_not_count(): void {
         $store=$this->store('one');$offer=$this->offer($store);$url=route('album',[$offer->album_id,'cd']);
         $this->withHeader('User-Agent','Googlebot')->get($url)->assertOk();$this->human();$this->withHeader('Sec-Purpose','prefetch')->get(route('offers.visit',$offer))->assertRedirect($offer->url);

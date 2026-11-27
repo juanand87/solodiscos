@@ -2,11 +2,11 @@
 /**
  * Plugin Name: SoloDiscos para WooCommerce
  * Description: Sincroniza ventas sin datos personales y consulta estadísticas de SoloDiscos.
- * Version: 1.0.0
+ * Version: 1.1.0
  * Requires at least: 6.4
  * Requires PHP: 7.4
  * Requires Plugins: woocommerce
- * WC requires at least: 8.2
+ * WC requires at least: 8.5
  * Author: SoloDiscos
  * License: GPL-2.0-or-later
  */
@@ -21,8 +21,14 @@ add_action('before_woocommerce_init', function () {
 final class SoloDiscos_WooCommerce {
     const API = 'https://www.solodiscos.cl/api/v1/woocommerce/';
     const GROUP = 'solodiscos';
+    const VERSION = '1.1.0';
+    const CACHE = 'solodiscos_dashboard_v2';
     public static function init() {
         add_action('admin_menu', [__CLASS__, 'menu']);
+        add_action('admin_init', [__CLASS__, 'upgrade']);
+        add_action('admin_enqueue_scripts', function ($hook) {
+            if ($hook === 'woocommerce_page_solodiscos') { wp_enqueue_style('solodiscos-admin', plugins_url('admin.css', __FILE__), [], self::VERSION); }
+        });
         add_action('admin_post_solodiscos_settings', [__CLASS__, 'settings']);
         add_action('woocommerce_after_order_object_save', [__CLASS__, 'changed']);
         add_action('woocommerce_order_refunded', function ($id) { self::enqueue($id); });
@@ -56,7 +62,7 @@ final class SoloDiscos_WooCommerce {
         check_admin_referer('solodiscos_settings');
         $action = sanitize_key($_POST['sd_action'] ?? 'save');
         if ($action === 'disconnect') {
-            delete_option('solodiscos_token'); delete_transient('solodiscos_summary');
+            delete_option('solodiscos_token'); delete_transient(self::CACHE);
             as_unschedule_all_actions('solodiscos_send_order', null, self::GROUP);
             as_unschedule_all_actions('solodiscos_backfill', null, self::GROUP);
             as_unschedule_all_actions('solodiscos_deleted_order', null, self::GROUP);
@@ -67,11 +73,11 @@ final class SoloDiscos_WooCommerce {
                 if (!preg_match('/^[a-f0-9]{64}$/D', $token)) { wp_die('La clave debe contener 64 caracteres hexadecimales.'); }
                 update_option('solodiscos_token', $token, false);
             }
-            delete_transient('solodiscos_summary');
-            $result = self::request('summary');
+            delete_transient(self::CACHE);
+            $result = self::request('dashboard');
             update_option('solodiscos_notice', is_wp_error($result) ? $result->get_error_message() : 'Conexión comprobada.');
             if (!is_wp_error($result)) {
-                set_transient('solodiscos_summary', $result, 5 * MINUTE_IN_SECONDS);
+                set_transient(self::CACHE, $result, 5 * MINUTE_IN_SECONDS);
                 if ($action === 'history' || $token !== '') {
                     if (!as_has_scheduled_action('solodiscos_backfill', null, self::GROUP)) {
                         as_enqueue_async_action('solodiscos_backfill', [1, 0], self::GROUP);
@@ -84,6 +90,20 @@ final class SoloDiscos_WooCommerce {
     }
     public static function changed($order) {
         if ($order instanceof WC_Order && $order->get_type() === 'shop_order') { self::enqueue($order->get_id()); }
+    }
+    public static function upgrade() {
+        if (get_option('solodiscos_version') === self::VERSION || !current_user_can('manage_woocommerce')) { return; }
+        delete_transient('solodiscos_summary'); delete_transient(self::CACHE);
+        if (get_option('solodiscos_token') && !as_has_scheduled_action('solodiscos_backfill', null, self::GROUP)) {
+            as_enqueue_async_action('solodiscos_backfill', [1, 0], self::GROUP);
+        }
+        update_option('solodiscos_version', self::VERSION, false);
+    }
+    public static function attributed($order) {
+        $prefix = '_'.trim((string)apply_filters('wc_order_attribution_tracking_field_prefix', 'wc_order_attribution_'), '_').'_';
+        $type = (string)$order->get_meta($prefix.'source_type');
+        $source = strtolower(trim((string)$order->get_meta($prefix.'utm_source')));
+        return in_array($type, ['utm', 'referral'], true) && in_array($source, ['solodiscos.cl', 'www.solodiscos.cl'], true);
     }
     public static function enqueue($id) {
         if (get_option('solodiscos_token') && function_exists('as_enqueue_async_action')) {
@@ -100,7 +120,8 @@ final class SoloDiscos_WooCommerce {
             'source_updated_at' => gmdate('Y-m-d\TH:i:s\Z', $modified ? $modified->getTimestamp() : time()),
             'paid' => (bool)($order->get_date_paid() || $order->is_paid()), 'total' => (string)$order->get_total(),
             'refunded' => (string)min((float)$order->get_total(), (float)$order->get_total_refunded()),
-            'units' => $units, 'refunded_units' => min($units, abs((int)$order->get_item_count_refunded()))];
+            'units' => $units, 'refunded_units' => min($units, abs((int)$order->get_item_count_refunded())),
+            'attributed_to_solodiscos' => self::attributed($order)];
     }
     public static function send($id, $attempt = 0) {
         if (!get_option('solodiscos_token')) { return; }
@@ -142,44 +163,19 @@ final class SoloDiscos_WooCommerce {
     }
     public static function page() {
         if (!current_user_can('manage_woocommerce')) { return; }
-        echo '<div class="wrap"><h1>SoloDiscos</h1><p>Comparte ventas totales y devoluciones sin nombres, correos, direcciones ni medios de pago. Incluye todos los productos de WooCommerce.</p>';
-        echo '<p>'.esc_html(get_option('solodiscos_notice', '')).'</p><p>Último envío: '.esc_html(get_option('solodiscos_last_sent', 'Sin envíos')).'</p>';
-        echo '<p>'.esc_html(get_option('solodiscos_history', '')).'</p><p>'.esc_html(get_option('solodiscos_last_error', '')).'</p>';
-        echo '<form method="post" action="'.esc_url(admin_url('admin-post.php')).'"><input type="hidden" name="action" value="solodiscos_settings">';
-        wp_nonce_field('solodiscos_settings');
-        echo '<p><label>Clave de integración <input type="password" name="token" value="" autocomplete="new-password" size="65" placeholder="'.esc_attr(get_option('solodiscos_token') ? 'Clave guardada. Deja vacío para conservarla.' : 'Genera tu clave en el portal de tiendas.').'"></label></p>';
-        echo '<button class="button button-primary" name="sd_action" value="save">Guardar y comprobar conexión</button> <button class="button" name="sd_action" value="history">Importar todo el historial</button> <button class="button" name="sd_action" value="disconnect">Desconectar</button></form>';
-        $summary = get_transient('solodiscos_summary');
-        if (!$summary && get_option('solodiscos_token')) {
-            $summary = self::request('summary');
-            if (!is_wp_error($summary)) { set_transient('solodiscos_summary', $summary, 5 * MINUTE_IN_SECONDS); }
+        $configured = (bool)get_option('solodiscos_token');
+        $summary = $configured ? get_transient(self::CACHE) : false;
+        if (!$summary && $configured) {
+            $summary = self::request('dashboard');
+            if (!is_wp_error($summary)) { set_transient(self::CACHE, $summary, 5 * MINUTE_IN_SECONDS); }
         }
-        if (is_array($summary)) {
-            echo '<h2>'.esc_html($summary['store']).' · últimos 30 días</h2><p>Datos consultados cada cinco minutos. Ventas por fecha de creación (UTC); incluyen impuestos y envío. No son ventas atribuidas a SoloDiscos.</p>';
-            echo '<p>Catálogo: '.esc_html($summary['catalog']['total']).' publicaciones · '.esc_html($summary['catalog']['published']).' publicadas · '.esc_html($summary['catalog']['out_of_stock']).' sin stock.</p>';
-            echo '<p>Identificación pendiente: '.esc_html($summary['catalog']['pending']).' · Excluidas: '.esc_html($summary['catalog']['excluded']).' · Solicitudes pendientes: '.esc_html($summary['pending_corrections']).' · Última extracción: '.esc_html($summary['catalog']['last_success_at'] ?? 'Sin registro').'</p>';
-            echo '<p>Interés en SoloDiscos: '.esc_html($summary['engagement']['views']).' vistas · '.esc_html($summary['engagement']['clicks']).' clics hacia tu tienda.</p>';
-            foreach ($summary['sales'] as $row) {
-                echo '<p>'.esc_html($row['currency']).': '.esc_html($row['orders']).' pedidos · Total: '.esc_html($row['gross']).' · Neto: '.esc_html($row['net']).' · Devoluciones: '.esc_html($row['refunded']).' · Unidades netas: '.esc_html($row['units']).' · Ticket neto: '.esc_html($row['average']).'</p>';
-            }
-            foreach (['topViews' => 'Discos con más interés', 'topClicks' => 'Publicaciones con más clics', 'scarce' => 'Poca disponibilidad', 'replenish' => 'Oportunidades de reposición'] as $key => $label) {
-                echo '<h3>'.esc_html($label).'</h3><ul>';
-                foreach ($summary['engagement'][$key] as $item) {
-                    $detail = ($item['artist'] ?? '').' · '.$item['title'].' · '.($item['format'] ?? '');
-                    if (isset($item['total'])) { $detail .= ' · '.($key === 'topClicks' ? 'Clics: ' : 'Vistas: ').$item['total']; }
-                    if (isset($item['views'])) { $detail .= ' · Vistas: '.$item['views']; }
-                    if (isset($item['stores'])) { $detail .= ' · Tiendas: '.$item['stores']; }
-                    if (isset($item['minimum_price'])) { $detail .= ' · Precio mínimo CLP: '.$item['minimum_price']; }
-                    echo '<li>'.esc_html($detail).'</li>';
-                }
-                echo '</ul>';
-            }
+        $show_sales = isset($_GET['sd_view']) && sanitize_key(wp_unslash($_GET['sd_view'])) === 'sales';
+        $page = isset($_GET['sd_page']) ? max(1, min(1000000, absint($_GET['sd_page']))) : 1;
+        $orders = null;
+        if ($show_sales && is_array($summary)) {
+            $orders = self::request('attributed-orders?'.http_build_query(['page' => $page, 'from' => $summary['from'], 'to' => $summary['to']]));
         }
-        echo '<h2>Tu portal</h2><p>';
-        foreach (['' => 'Resumen', 'catalogo' => 'Mi catálogo', 'precios' => 'Comparación de precios', 'estadisticas' => 'Estadísticas completas', 'solicitudes' => 'Solicitudes', 'integracion' => 'Integración y ventas'] as $path => $label) {
-            echo '<a class="button" href="'.esc_url('https://www.solodiscos.cl/tiendas/'.$path).'" target="_blank" rel="noopener noreferrer">'.esc_html($label).'</a> ';
-        }
-        echo '</p><p>Para sincronizar se requiere que WordPress ejecute las acciones programadas. Al desconectar no se borran los datos ya recibidos en SoloDiscos.</p></div>';
+        include __DIR__.'/admin-page.php';
     }
 }
 add_action('plugins_loaded', function () { if (class_exists('WooCommerce')) { SoloDiscos_WooCommerce::init(); } });

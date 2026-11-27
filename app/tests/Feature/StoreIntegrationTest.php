@@ -68,4 +68,44 @@ class StoreIntegrationTest extends TestCase {
         $this->get(route('admin.integration.sales'))->assertRedirect(route('login'));
         $this->actingAs(User::factory()->create(),'web')->get(route('admin.integration.sales'))->assertOk()->assertSee('shop.example');
     }
+    public function test_attribution_dashboard_separates_sources_refunds_currencies_and_stores(): void {
+        $account=$this->account();$key=$this->key($account);
+        foreach([
+            ['attributed_to_solodiscos'=>true,'refunded'=>5000],
+            ['attributed_to_solodiscos'=>true,'currency'=>'USD','total'=>40],
+            ['attributed_to_solodiscos'=>false],[],
+            ['attributed_to_solodiscos'=>true,'paid'=>false],
+            ['attributed_to_solodiscos'=>true,'status'=>'cancelled'],
+            ['attributed_to_solodiscos'=>true,'ordered_at'=>'2025-01-01T12:00:00Z'],
+        ] as $i=>$changes)$this->withToken($key)->postJson('/api/v1/woocommerce/orders',$this->order(['external_id'=>(string)$i]+$changes))->assertOk();
+        $album=\App\Models\Album::create(['artist'=>'Artist','title'=>'Album','match_key'=>'attribution-test']);
+        DB::table('engagement_days')->insert(['metric_key'=>'attribution-clicks','day'=>'2026-11-20','kind'=>'click','album_id'=>$album->id,'format'=>'cd','store_id'=>$account->store_id,'total'=>20]);
+        $other=$this->account('other.example');$otherKey=$this->key($other);
+        $this->withToken($otherKey)->postJson('/api/v1/woocommerce/orders',$this->order(['attributed_to_solodiscos'=>true,'total'=>99999]))->assertOk();
+        $query='?from=2026-11-01&to=2026-11-30&store_id='.$other->store_id;
+        $data=$this->withToken($key)->getJson('/api/v1/woocommerce/dashboard'.$query)->assertOk()->assertHeader('Cache-Control','no-store, private')
+            ->assertJsonPath('clicks',20)->assertJsonPath('orders',2)->assertJsonPath('conversion_rate',10)->json();
+        $amounts=collect($data['amounts'])->keyBy('currency');$this->assertEquals(15000,$amounts['CLP']['net']);$this->assertEquals(40,$amounts['USD']['net']);
+        $this->getJson('/api/v1/woocommerce/attributed-orders'.$query)->assertOk()->assertJsonPath('total',2)->assertJsonCount(2,'data')->assertJsonMissing(['total'=>99999])->assertJsonMissingPath('data.0.store_id')->assertJsonMissingPath('data.0.token_hash');
+        $this->withToken($otherKey)->getJson('/api/v1/woocommerce/dashboard'.$query)->assertOk()->assertJsonPath('conversion_rate',null);
+        $this->withToken('invalid')->getJson('/api/v1/woocommerce/attributed-orders')->assertUnauthorized();
+    }
+    public function test_attributed_sales_paginate_and_use_the_same_chilean_calendar_as_clicks(): void {
+        $account=$this->account();$key=$this->key($account);
+        // 00:30 UTC on the 21st is still the 20th in Santiago.
+        for($i=0;$i<22;$i++)$this->withToken($key)->postJson('/api/v1/woocommerce/orders',$this->order(['external_id'=>(string)$i,'ordered_at'=>'2026-11-21T00:30:00Z','attributed_to_solodiscos'=>true]))->assertOk();
+        $this->getJson('/api/v1/woocommerce/attributed-orders?from=2026-11-20&to=2026-11-20&page=2')->assertOk()->assertJsonPath('total',22)->assertJsonPath('last_page',2)->assertJsonCount(2,'data');
+        $this->getJson('/api/v1/woocommerce/dashboard?from=2026-11-21&to=2026-11-21')->assertOk()->assertJsonPath('orders',0)->assertJsonPath('conversion_rate',null);
+        $this->getJson('/api/v1/woocommerce/attributed-orders?page=0')->assertUnprocessable();
+        $this->getJson('/api/v1/woocommerce/dashboard?from=2026-11-21&to=2026-11-20')->assertUnprocessable();
+    }
+    public function test_legacy_snapshots_never_invent_or_erase_attribution(): void {
+        $key=$this->key($this->account());
+        $this->withToken($key)->postJson('/api/v1/woocommerce/orders',$this->order())->assertOk();
+        $this->assertNull(DB::table('store_orders')->value('attributed_to_solodiscos'));
+        $this->postJson('/api/v1/woocommerce/orders',$this->order(['attributed_to_solodiscos'=>true]))->assertOk();
+        $this->postJson('/api/v1/woocommerce/orders',$this->order(['source_updated_at'=>'2026-11-21T13:00:00Z','refunded'=>20000]))->assertOk();
+        $this->assertEquals(1,DB::table('store_orders')->value('attributed_to_solodiscos'));
+        $this->getJson('/api/v1/woocommerce/dashboard?from=2026-11-01&to=2026-11-30')->assertOk()->assertJsonPath('orders',1)->assertJsonPath('amounts.0.net',fn($value)=>(float)$value===0.0);
+    }
 }

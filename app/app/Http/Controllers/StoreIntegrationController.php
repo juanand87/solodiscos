@@ -33,6 +33,7 @@ class StoreIntegrationController extends Controller {
             'source_updated_at'=>'required|date_format:Y-m-d\TH:i:s\Z','paid'=>'required|boolean',
             'total'=>'required|numeric|min:0|max:999999999999.99','refunded'=>'required|numeric|min:0|lte:total',
             'units'=>'required|integer|min:0|max:1000000','refunded_units'=>'required|integer|min:0|lte:units',
+            'attributed_to_solodiscos'=>'sometimes|boolean',
         ]);
         $store=$r->attributes->get('integration_store');
         // All source timestamps are UTC; reporting uses the same UTC calendar in both applications.
@@ -58,5 +59,23 @@ class StoreIntegrationController extends Controller {
             'pending_corrections'=>\App\Models\StoreCorrection::where('store_id',$store->id)->where('status','pending')->count(),
             'sales'=>$sales->summary($store->id,$from,$to),'engagement'=>$reports->report(['store_id'=>$store->id,'from'=>$from,'to'=>$to]),
             'portal_url'=>route('portal.dashboard')]);
+    }
+    private function period(Request $r): array {
+        $dates=$r->validate(['from'=>'nullable|date_format:Y-m-d','to'=>'nullable|date_format:Y-m-d|after_or_equal:from']);
+        return [$dates['from']??now()->subDays(29)->toDateString(),$dates['to']??now()->toDateString()];
+    }
+    public function dashboard(Request $r,StoreSales $sales){
+        $store=$r->attributes->get('integration_store');[$from,$to]=$this->period($r);
+        $clicks=(int)DB::table('engagement_days')->where('store_id',$store->id)->where('kind','click')->whereBetween('day',[$from,$to])->sum('total');
+        $amounts=$sales->attributedSummary($store->id,$from,$to);$orders=(int)$amounts->sum('orders');
+        return response()->json(['store'=>$store->name,'from'=>$from,'to'=>$to,'timezone'=>config('app.timezone'),
+            'clicks'=>$clicks,'orders'=>$orders,'conversion_rate'=>$clicks>0?round(100*$orders/$clicks,2):null,'amounts'=>$amounts]);
+    }
+    public function attributedOrders(Request $r,StoreSales $sales){
+        $r->validate(['page'=>'sometimes|integer|min:1|max:1000000']);
+        $store=$r->attributes->get('integration_store');[$from,$to]=$this->period($r);
+        return response()->json($sales->attributed($store->id,$from,$to)
+            ->select('external_id','ordered_at','status','currency','total','refunded')->selectRaw('(total - refunded) as net')
+            ->orderByDesc('ordered_at')->orderByDesc('id')->paginate(20)->appends(['from'=>$from,'to'=>$to]));
     }
 }
