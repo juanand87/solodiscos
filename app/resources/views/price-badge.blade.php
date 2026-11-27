@@ -1,0 +1,2 @@
+@php($priceBadge=app(App\Services\PriceHistory::class)->badge($offer))
+@if($priceBadge)<p class="tag">{{ $priceBadge['verified']?'Oferta histórica verificada':'Bajada detectada' }} · {{ number_format($priceBadge['percent'],1,',','.') }}%</p><small>Antes {{ $offer->currency }} {{ number_format($priceBadge['reference'],$offer->currency==='CLP'?0:2,',','.') }} · ahorras {{ $offer->currency }} {{ number_format($priceBadge['saving'],$offer->currency==='CLP'?0:2,',','.') }}<br>Rebaja detectada {{ Carbon\Carbon::parse($priceBadge['started_at'])->format('d/m/Y H:i') }}</small>@endif

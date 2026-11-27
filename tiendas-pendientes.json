@@ -1,0 +1,37 @@
+{
+  "actualizado": "2026-11-25",
+  "criterio": "Priorizar conectores existentes. Estas tiendas quedan pendientes, sin registrar ni importar, hasta retomar sus adaptaciones.",
+  "tiendas": [
+    {
+      "nombre": "Vinilos Brieba",
+      "url": "https://www.vinilosbrieba.cl/",
+      "plataforma": "jumpseller",
+      "estado": "pendiente_de_conector",
+      "motivo": "Crear una base reutilizable para Jumpseller junto con Futuro Primitivo.",
+      "observaciones": ["En la ficha revisada, la descripción decía Usado y el JSON-LD NewCondition. Priorizar evidencia explícita y revisar contradicciones."]
+    },
+    {
+      "nombre": "Futuro Primitivo",
+      "url": "https://futuroprimitivo.cl/",
+      "plataforma": "jumpseller",
+      "estado": "pendiente_de_conector",
+      "motivo": "Candidata para reutilizar el futuro conector Jumpseller con Vinilos Brieba."
+    },
+    {
+      "nombre": "LEMM DJ Store",
+      "url": "https://lemm.cl/",
+      "plataforma": "personalizada_frontend_nextjs",
+      "estado": "pendiente_de_adaptacion",
+      "motivo": "El usuario decidió no continuar por ahora. No se confirmó la plataforma comercial del backend.",
+      "observaciones": ["La ficha revisada incluye Product JSON-LD con SKU, precio, stock, condición, imagen y descripción.", "Next.js no implica una API de catálogo estándar. Se necesita descubrimiento y paginación específicos."]
+    },
+    {
+      "nombre": "Música y Vinos",
+      "url": "https://www.musicayvinos.cl/",
+      "plataforma": "woocommerce_antiguo",
+      "estado": "pendiente_de_adaptacion",
+      "motivo": "Store API v1 y anterior devolvieron 404; wc/blocks/products respondió 401. El usuario aceptó priorizar otras tiendas. No se confirmó versión exacta.",
+      "observaciones": ["WordPress wp/v2/product es público pero no entregó precio ni stock en la muestra.", "Listados HTML con descripciones, precio y señales de compra; 12 productos por página. Requiere conector específico y más consultas."]
+    }
+  ]
+}

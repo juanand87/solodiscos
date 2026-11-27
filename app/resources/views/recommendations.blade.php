@@ -1,0 +1,32 @@
+@extends('layout')
+@section('title','Tiendas recomendadas · SoloDiscos')
+@section('content')
+<link rel="stylesheet" href="{{ asset('rankings.css') }}">
+<div class="recommendation-heading"><span class="eyebrow">ENCUENTRA TU PRÓXIMO DISCO</span><h1>Top 10 tiendas recomendadas</h1><p>Una selección basada en los precios de discos comparables en distintas tiendas.</p></div>
+<form class="panel ranking-filters" method="get">
+<label>Formato<select name="format"><option value="">CD y vinilo</option><option value="cd" @selected($filters['format']==='cd')>CD</option><option value="vinyl" @selected($filters['format']==='vinyl')>Vinilo</option></select></label>
+<label>Condición<select name="condition"><option value="">Nuevos y usados</option><option value="new" @selected($filters['condition']==='new')>Nuevo</option><option value="used" @selected($filters['condition']==='used')>Usado</option></select></label>
+<input type="hidden" name="currency" value="CLP"><button class="button">Ver recomendaciones</button></form>
+<p class="recommendation-note">Estas recomendaciones se basan en precios observados de discos comparables. Una mejor posición no significa que la tienda sea la más barata en cada compra; revisa la edición, el estado y el envío. Las estrellas expresan precios relativos, no opiniones de clientes ni calidad de servicio.</p>
+@php($top=collect($recommendations)->where('eligible',true)->take(10)->values())
+@php($remaining=collect($recommendations)->reject(fn($row)=>$top->contains(fn($item)=>$item['store']->id===$row['store']->id))->values())
+<section id="precios" class="panel recommendation-panel"><div class="section-heading"><h2>Top 10 tiendas recomendadas</h2><small>{{ $top->count() }} de hasta 10 tiendas · mínimo 100 productos comparables</small></div>
+<div class="table-wrap"><table data-ranking="recommended"><thead><tr><th>Posición / tienda</th><th>Precio relativo</th><th>Productos recomendados</th><th>Productos más baratos que otras tiendas</th></tr></thead><tbody>
+@forelse($top as $row)
+@php($tip=number_format(abs(100-$row['index']),1,',','.').'% '.($row['index']<=100?'por debajo':'por encima').' de la referencia en discos comparados con otras tiendas.')
+<tr data-store-id="{{ $row['store']->id }}"><td><span class="ranking-position">{{ $loop->iteration }}</span>@include('ranking-store',['store'=>$row['store']])</td>
+<td><button type="button" class="price-rating" aria-label="{{ number_format($row['stars'],1,',','.') }} de 5 estrellas por posición en el ranking. {{ $tip }}" title="{{ $tip }}"><span class="rating-track" aria-hidden="true">★★★★★<span class="rating-fill" style="width:{{ $row['stars']*20 }}%">★★★★★</span></span><span class="rating-tooltip" role="tooltip">{{ $tip }}</span></button></td>
+<td>@include('recommendation-count')</td><td><a class="sample-count" href="{{ route($administration?'admin.rankings.sample':'rankings.sample',['store'=>$row['store']->id,'condition'=>$filters['condition']?:'all','format'=>$filters['format'],'currency'=>$filters['currency'],'cheapest'=>1]) }}" title="Ver productos con el precio mínimo entre las tiendas comparadas. Incluye empates.">{{ number_format($row['cheaper_products'],0,',','.') }}</a></td></tr>
+@empty<tr><td colspan="4">Todavía no hay tiendas con 100 productos comparables en esta selección.</td></tr>@endforelse
+</tbody></table></div><p class="muted">«Productos más baratos que otras tiendas» cuenta los productos de la muestra con el precio mínimo entre las tiendas comparadas, para el mismo álbum, formato y condición. Incluye empates. Precios sin envío.</p></section>
+<section class="panel store-logo-carousel" data-logo-carousel aria-labelledby="other-stores-title"><div class="section-heading"><h2 id="other-stores-title">Otras tiendas recomendadas</h2><div class="logo-carousel-controls"><button type="button" data-logo-prev aria-label="Ver tiendas anteriores">‹</button><button type="button" data-logo-next aria-label="Ver siguientes tiendas">›</button></div></div>
+<div class="store-logo-track" data-logo-track tabindex="0" role="region" aria-label="Logos de otras tiendas recomendadas">
+@foreach($remaining as $row)@if($row['store']->logo_url)
+<a class="store-logo-slide" data-store-id="{{ $row['store']->id }}" href="{{ $row['sample']?route($administration?'admin.rankings.sample':'rankings.sample',['store'=>$row['store']->id,'condition'=>$filters['condition']?:'all','format'=>$filters['format'],'currency'=>$filters['currency']]):$row['store']->url }}" title="{{ $row['store']->name }}" aria-label="{{ $row['store']->name }}"><img src="{{ $row['store']->logo_url }}" alt="" loading="lazy" referrerpolicy="no-referrer" data-store-logo><span class="store-logo-name">{{ $row['store']->name }}</span></a>
+@endif @endforeach
+</div></section>
+<script src="{{ asset('recommendations.js') }}" defer></script>
+<details class="recommendation-method"><summary>Cómo se elaboran las recomendaciones</summary><p>Usamos todos los productos comparables disponibles, con un mínimo de 100 por tienda. Cada producto se compara solo con el mismo álbum, formato y condición en al menos otra tienda. Para cada tienda y producto tomamos su precio mínimo y lo dividimos por la mediana del precio de las otras tiendas. Ordenamos las tiendas por la mediana de esas relaciones. La muestra puede ser diferente en cada tienda.</p><p>Las estrellas muestran la posición dentro del Top 10: el primer puesto tiene 5 y el décimo 3, con una progresión gradual entre ambos. Si hay menos de diez tiendas, se mantiene la escala por posición. El porcentaje al pasar el cursor muestra la diferencia real de precios respecto de la referencia. No se mezclan precios de nuevos con usados; en la vista general reunimos los resultados de sus comparaciones separadas.</p><p>Solo se incluyen productos con stock, identidad y precio válidos, comprobados en las últimas 72 horas. El envío no está incluido. Actualizamos los resultados como máximo cada cinco minutos y cuando cambian los datos.</p></details>
+<p><a class="button secondary" href="{{ route($administration?'admin.rankings.statistics':'rankings.statistics',$filters) }}">Ver variedad, descuentos y otras estadísticas</a></p>
+@if($administration)<details class="panel"><summary>Control del ranking</summary><p>Las tiendas con menos de 100 productos comparables no reciben posición ni estrellas.</p><a href="{{ route('statistics.index') }}">Estadísticas del catálogo</a></details>@endif
+@endsection

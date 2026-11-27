@@ -1,0 +1,7 @@
+SoloDiscos · Banner editorial · 25 de noviembre de 2026
+Herramienta: image_gen integrada, sin API ni CLI adicional.
+Original: app/public/images/vinyl-editorial.png
+Versión web: app/public/images/vinyl-editorial.jpg (misma composición y dimensiones, JPEG optimizado).
+
+Prompt final:
+Use case: photorealistic-natural. Asset type: wide website hero photograph for SoloDiscos, a Chilean vinyl and CD price comparison platform. Create a premium editorial music photograph, horizontal 3:2 composition suitable for cropping into a 2.6:1 panoramic banner. A beautifully detailed black vinyl record spinning on a silver brushed aluminum turntable, tonearm on the right, acid lime green blank record center label, subtle warm studio light and fine film grain. Subject and record concentrated in right half and bottom right. Left half is a very dark charcoal studio background with softly blurred shelves of records, generous quiet dark negative space for HTML headline overlay. Contemporary independent record-store culture, elegant authentic materials, realistic grooves and reflections, moody but sharp premium photography. Palette charcoal, black, muted silver and a small lime green accent. No text, no typography, no watermark, no logos, no album cover reproductions. The record must look like real black vinyl, no illustrated or fake UI elements.

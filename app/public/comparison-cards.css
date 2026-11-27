@@ -1,0 +1,101 @@
+/* Album comparisons: a separate record sleeve and seller panel per album. */
+.storefront .comparison-list{max-width:1320px;padding:0;background:transparent;gap:30px;margin:30px auto}
+.storefront .comparison-list .comparison-card{display:grid;grid-template-columns:1fr 1fr;border:1px solid #d9ded5;border-radius:22px;box-shadow:0 7px 24px #2933200d;overflow:hidden}
+.storefront .comparison-list .comparison-heading{padding:34px 28px;gap:27px;display:grid;grid-template-columns:170px minmax(0,1fr);align-items:center;background:linear-gradient(125deg,#f9f9f5,#f0f3eb);border:0;border-right:1px solid #e3e7de;min-width:0}
+.storefront .comparison-list .comparison-cover{position:relative;isolation:isolate;width:170px;height:190px;padding:0;display:grid;place-items:center;background:transparent;border:0;box-shadow:none;border-radius:0;overflow:visible}
+.comparison-cover:before{content:"";position:absolute;z-index:-1;right:-18px;top:50%;width:150px;height:150px;transform:translateY(-50%);border-radius:50%;background:repeating-radial-gradient(circle,#171b18 0 2px,#30362e 3px,#131713 4px);box-shadow:4px 5px 8px #20271d26}
+.comparison-cover.comparison-cd:before{background:conic-gradient(#c5d0cb,#f6fbf8,#a8b9c4,#eee2cc,#dbe9e3,#bac6d3,#f6fbf8,#c5d0cb)}
+.storefront .comparison-list .comparison-cover img{position:relative;width:100%;height:170px;object-fit:contain;background:#fff;border:6px solid #fff;border-radius:10px;box-shadow:0 9px 17px #25311c26}
+.storefront .comparison-list .comparison-summary{min-width:0}
+.storefront .comparison-list .comparison-artist{font-size:12px;text-transform:uppercase;letter-spacing:1.5px;font-weight:750;color:#626e65}
+.storefront .comparison-list .comparison-summary h2{font-size:29px;line-height:1.1;font-weight:800;margin:10px 0 18px;letter-spacing:-.8px;overflow-wrap:anywhere}
+.storefront .comparison-list .comparison-summary h2 a{color:#12242b}
+.storefront .comparison-list .comparison-meta{gap:8px;margin:0 0 20px;font-size:12px}
+.storefront .comparison-list .comparison-format,.storefront .comparison-list .comparison-condition{padding:4px 10px;border-radius:9px;font-size:12px}
+.storefront .comparison-list .comparison-format{background:#164c32}
+.storefront .comparison-list .comparison-condition{background:#e5eddf;color:#244934}
+.storefront .comparison-list .comparison-summary .comparison-saving{display:inline-block;margin:0 0 12px;background:#e2efdb;color:#116032;padding:6px 10px;border-radius:12px;font-size:13px;font-weight:750}
+.comparison-saving:before{content:"◆";display:inline-block;font-size:11px;margin-right:7px}
+.storefront .comparison-list .comparison-from{margin:10px 0 0;gap:10px;flex-wrap:wrap;font-size:14px;color:#626d64}
+.storefront .comparison-list .comparison-from strong{font-size:38px;line-height:1.15;letter-spacing:-1px;font-weight:800;color:#126132}
+.comparison-options{padding:24px 18px 18px;min-width:0;display:flex;flex-direction:column;background:#fff}
+.storefront .comparison-options-label{display:flex;align-items:center;gap:12px;margin:0;padding:0 10px 20px;font-size:21px;font-weight:800;text-transform:none;letter-spacing:-.5px;color:#12242b;line-height:1.2}
+.comparison-cart{display:grid;place-items:center;background:#e9f0e2;color:#14332a;border-radius:11px;width:42px;height:42px;flex:0 0 42px}
+.comparison-cart svg{width:26px;height:26px}
+.storefront .comparison-list .comparison-stores{padding:0;border:0}
+.storefront .comparison-list .comparison-store{grid-template-columns:minmax(0,1fr) auto auto;padding:19px 10px;gap:12px;margin:0;border-bottom:1px solid #e9ece5;border-radius:0;min-width:0}
+.storefront .comparison-list .comparison-store:last-child{padding-bottom:19px}
+.storefront .comparison-list .comparison-best{background:#edf5e7;border-radius:14px;border-bottom-color:transparent;margin:0 0 3px}
+.storefront .comparison-list .comparison-seller{gap:12px;grid-row:auto;min-width:0}
+.comparison-store-logo{display:grid;place-items:center;width:42px;height:46px;flex:0 0 42px;border-radius:9px;background:#f4f2e8;padding:5px}
+.comparison-store-logo img{display:block;width:100%;height:100%;object-fit:contain}
+.comparison-store-logo img[src*="_white."]{filter:brightness(0)}
+.comparison-store-logo>.disc{width:25px;height:25px;margin:0}
+.storefront .comparison-list .comparison-seller strong{font-size:16px;font-weight:750;line-height:1.25;color:#132630;overflow-wrap:anywhere}
+.storefront .comparison-list .comparison-seller small{font-size:13px;color:#727972;margin-top:5px}
+.storefront .comparison-list .comparison-best .comparison-seller small{display:inline-block;font-size:11px;line-height:1.4;font-weight:750;background:#d5eacc;padding:3px 7px;border-radius:20px;color:#146332}
+.comparison-best .comparison-seller small:before{content:"★";margin-right:5px}
+.storefront .comparison-list .comparison-price{font-size:20px;font-weight:800;letter-spacing:-.5px;color:#12242b}
+.storefront .comparison-list .comparison-best .comparison-price{color:#126132}
+.storefront .comparison-list .comparison-visit{display:inline-flex;align-items:center;justify-content:center;gap:6px;padding:9px 12px;font-size:12px;min-height:38px;border:1px solid #a6afa5;color:#182b33;border-radius:24px}
+.comparison-visit svg{width:14px;height:14px;flex-shrink:0}
+.storefront .comparison-list .comparison-best .comparison-visit{background:#122731;color:white;border-color:#122731;box-shadow:0 3px 7px #12273117}
+.storefront .comparison-list .comparison-visit:hover{background:#e6eee0;color:#123324}
+.storefront .comparison-list .comparison-best .comparison-visit:hover{background:#244c38;color:white}
+.comparison-all{display:flex;flex-wrap:wrap;justify-content:space-between;align-items:center;gap:7px;margin-top:auto;padding:14px 10px 0}
+.comparison-all small{font-size:11px;color:#697569;margin:0}
+.comparison-all a{color:#22543a;font-size:12px;font-weight:750;text-decoration:underline;text-underline-offset:4px}
+@media(max-width:1150px){
+ .storefront .comparison-list .comparison-card{grid-template-columns:1fr}
+ .storefront .comparison-list .comparison-heading{grid-template-columns:190px minmax(0,1fr);gap:32px;border-right:0;border-bottom:1px solid #e3e7de;padding:26px}
+ .storefront .comparison-list .comparison-cover{width:180px;height:180px}
+ .storefront .comparison-list .comparison-cover img{height:180px}
+ .comparison-options{padding:22px}
+ .storefront .comparison-list .comparison-seller strong{font-size:18px}
+ .storefront .comparison-list .comparison-visit{font-size:13px;padding:10px 17px}
+}
+@media(max-width:540px){
+ .storefront .comparison-list{gap:24px;margin:22px 0}
+ .storefront .comparison-list .comparison-card{border-radius:16px}
+ .storefront .comparison-list .comparison-heading{grid-template-columns:96px minmax(0,1fr);padding:20px 16px;gap:20px;align-items:center}
+ .storefront .comparison-list .comparison-cover{width:96px;height:116px}
+ .storefront .comparison-list .comparison-cover img{height:96px;border-width:4px;border-radius:7px}
+ .comparison-cover:before{width:86px;height:86px;right:-13px}
+ .storefront .comparison-list .comparison-artist{font-size:10px;letter-spacing:1px}
+ .storefront .comparison-list .comparison-summary h2{font-size:21px;line-height:1.15;margin:7px 0 11px;letter-spacing:-.4px}
+ .storefront .comparison-list .comparison-meta{gap:5px;font-size:10px;margin-bottom:10px}
+ .storefront .comparison-list .comparison-format,.storefront .comparison-list .comparison-condition{font-size:10px;padding:3px 7px;border-radius:6px}
+ .storefront .comparison-list .comparison-summary .comparison-saving{font-size:11px;padding:5px 7px;margin-bottom:6px;border-radius:8px;line-height:1.4}
+ .comparison-saving:before{font-size:9px;margin-right:5px}
+ .storefront .comparison-list .comparison-from{font-size:12px;gap:5px;margin:6px 0 0}
+ .storefront .comparison-list .comparison-from strong{font-size:28px}
+ .comparison-options{padding:18px 12px 15px}
+ .storefront .comparison-options-label{font-size:19px;padding:0 3px 16px;gap:9px}
+ .comparison-cart{width:34px;height:34px;flex-basis:34px;border-radius:8px}
+ .comparison-cart svg{width:22px;height:22px}
+ .storefront .comparison-list .comparison-store{grid-template-columns:minmax(0,1fr) auto;padding:15px 8px;gap:5px 8px}
+ .storefront .comparison-list .comparison-store:last-child{padding-bottom:15px}
+ .storefront .comparison-list .comparison-seller{grid-row:span 2;gap:8px}
+ .comparison-store-logo{width:34px;height:38px;flex-basis:34px;padding:4px}
+ .storefront .comparison-list .comparison-seller strong{font-size:14px}
+ .storefront .comparison-list .comparison-seller small{font-size:12px}
+ .storefront .comparison-list .comparison-best .comparison-seller small{font-size:10px;padding:3px 5px}
+ .storefront .comparison-list .comparison-price{font-size:18px;text-align:right}
+ .storefront .comparison-list .comparison-visit{font-size:11px;padding:6px 10px;min-height:32px;justify-self:end}
+ .comparison-visit svg{width:12px;height:12px}
+ .comparison-all{padding:13px 3px 0;gap:9px}
+}
+@media(max-width:360px){
+ .storefront .comparison-list .comparison-heading{grid-template-columns:78px minmax(0,1fr);gap:16px;padding:17px 13px}
+ .storefront .comparison-list .comparison-cover{width:78px;height:96px}
+ .storefront .comparison-list .comparison-cover img{height:78px}
+ .comparison-cover:before{width:72px;height:72px;right:-11px}
+ .storefront .comparison-list .comparison-summary h2{font-size:19px}
+ .storefront .comparison-list .comparison-from strong{font-size:25px}
+ .storefront .comparison-list .comparison-seller{gap:6px}
+ .storefront .comparison-list .comparison-seller strong{font-size:13px}
+ .comparison-options{padding-left:9px;padding-right:9px}
+ .comparison-store-logo{width:28px;height:34px;flex-basis:28px}
+ .storefront .comparison-list .comparison-price{font-size:16px}
+}
+.comparison-seller>div{min-width:0;display:flex;flex-direction:column;align-items:flex-start}
