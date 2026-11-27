@@ -4,6 +4,6 @@
     <div class="record-loader-card">
         <div class="record-loader-player" aria-hidden="true"><div class="record-loader-vinyl"><div class="record-loader-label"><i></i></div></div><div class="record-loader-arm"></div></div>
         <div class="record-loader-bars" aria-hidden="true"><i></i><i></i><i></i><i></i><i></i></div>
-        <strong>Preparando tu próxima escucha</strong><span>Cargando SoloDiscos…</span>
+        <strong>Buscando tu próximo disco...</strong><span>Cargando SoloDiscos…</span>
     </div>
 </div>
