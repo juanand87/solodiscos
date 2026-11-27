@@ -15,6 +15,26 @@ class RankingsTest extends TestCase {
             'format'=>'cd','condition'=>'new','currency'=>'CLP','price'=>$price,'availability'=>'in_stock','checked_at'=>now(),'url'=>'https://example.com/product']);
     }
     private function rankings(array $filters=[]): array {return app(StoreRankings::class)->calculate($filters+['currency'=>'CLP']);}
+    public function test_batches_preserve_cross_batch_minimum_prices_and_feed_count_and_order(): void {
+        $a=$this->store('A');$b=$this->store('B');$deals=[];
+        for($i=1;$i<=510;$i++){
+            $offer=$this->offer($a,$i,100);$this->offer($b,$i,200);
+            if($i<=60){
+                $started=now()->subMinutes($i%7)->format('Y-m-d H:i:s');
+                DB::table('offer_price_tracking')->insert(['offer_id'=>$offer->id,'identity_key'=>PriceHistory::identity($offer),
+                    'last_price'=>100,'last_checked_at'=>$offer->checked_at,'last_available'=>true,'status'=>'offer','reference_price'=>200,'started_at'=>$started]);
+                $deals[]=['id'=>$offer->id,'started'=>$started];
+            }
+        }
+        $this->offer($b,1,50); // The cheapest publication occurs after the first 1,000 records.
+        $result=$this->rankings();$rows=collect($result['recommendations'])->keyBy('store.id');
+        $this->assertSame(1021,$result['offer_count']);$this->assertSame(510,$rows[$a->id]['sample']);
+        $this->assertSame(509,$rows[$a->id]['cheaper_products']);$this->assertSame(1,$rows[$b->id]['cheaper_products']);
+        $this->assertSame(60,$result['deal_count']);$this->assertCount(24,$result['feed']);
+        usort($deals,fn($x,$y)=>strcmp($y['started'],$x['started'])?:($y['id']<=>$x['id']));
+        $this->assertSame(array_column(array_slice($deals,0,24),'id'),array_column($result['feed'],'id'));
+        $this->assertSame(60,collect($result['discounts'])->firstWhere('store.id',$a->id)['sample']);
+    }
     public function test_cheaper_products_includes_ties_deduplicates_stores_and_respects_filters(): void {
         $a=$this->store('A');$b=$this->store('B');$c=$this->store('C');
         foreach(range(1,100) as $album){$this->offer($a,$album,100);$this->offer($b,$album,200);$this->offer($c,$album,300);}

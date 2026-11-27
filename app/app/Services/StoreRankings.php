@@ -12,7 +12,7 @@ class StoreRankings {
     }
     public function get(array $filters): array {
         ksort($filters);
-        return Cache::remember('store-rankings:v6:'.Cache::get('store-rankings:revision','0').':'.hash('sha256',json_encode($filters)),300,fn()=>$this->calculate($filters));
+        return Cache::remember('store-rankings:v7:'.Cache::get('store-rankings:revision','0').':'.hash('sha256',json_encode($filters)),300,fn()=>$this->calculate($filters));
     }
     private function eligibleQuery(array $filters): \Illuminate\Database\Query\Builder {
         $query=DB::table('offers as o')->join('stores as s','s.id','=','o.store_id')->join('albums as a','a.id','=','o.album_id')
@@ -50,25 +50,42 @@ class StoreRankings {
     }
     public function calculate(array $filters): array {
         $stores=DB::table('stores')->where('active',true)->orderBy('name')->get(['id','name','logo_url','url'])->keyBy('id');
+        $ids=$this->eligibleQuery($filters)->orderBy('o.id')->pluck('o.id')->all();
         $query=$this->eligibleQuery($filters)->leftJoin('offer_price_tracking as t','t.offer_id','=','o.id');
-        $offers=$query->select('o.id','o.store_id','o.album_id','o.title','o.format','o.condition','o.currency','o.price','o.checked_at','o.url','o.image',
+        $query->select('o.id','o.store_id','o.album_id','o.title','o.format','o.condition','o.currency','o.price','o.checked_at','o.url','o.image',
             'a.artist','a.title as album_title','t.identity_key as tracking_identity','t.status as deal_status','t.reference_price','t.started_at as deal_started_at',
-            't.last_price as tracked_price','t.last_checked_at as tracked_at','t.reference_from')->orderBy('o.id')->get();
-        $variety=[];$groups=[];$feed=[];
+            't.last_price as tracked_price','t.last_checked_at as tracked_at','t.reference_from');
+        // Resolve only lightweight IDs first, then fetch details through primary-key batches.
+        $offers=(function()use($query,$ids){
+            foreach(array_chunk($ids,1000) as $batch)
+                foreach((clone $query)->whereIn('o.id',$batch)->orderBy('o.id')->get() as $offer)yield $offer;
+        })();
+        $variety=[];$groups=[];$feed=[];$offerCount=0;$dealCount=0;
         foreach($stores as $store)$variety[$store->id]=['store'=>$store,'albums'=>[],'cd'=>[],'vinyl'=>[],'publications'=>0,'checked_at'=>null];
         foreach($offers as $offer){
+            $offerCount++;
             $offer->store_name=$stores[$offer->store_id]->name;
             $v=&$variety[$offer->store_id];$v['albums'][$offer->album_id.'|'.$offer->format]=true;$v[$offer->format][$offer->album_id]=true;$v['publications']++;
             $v['checked_at']=max($v['checked_at']??'',$offer->checked_at);unset($v);
             $key=$offer->album_id.'|'.$offer->format.'|'.$offer->condition;
-            if(!isset($groups[$key][$offer->store_id]) || (float)$offer->price<(float)$groups[$key][$offer->store_id]->price)$groups[$key][$offer->store_id]=$offer;
             $offer->deal=null;
             if(in_array($offer->deal_status,['offer','drop']) && $offer->tracking_identity===PriceHistory::identity($offer)
                 && $offer->tracked_at===$offer->checked_at && (float)$offer->tracked_price===(float)$offer->price && $offer->reference_price>$offer->price){
                 $offer->deal=['verified'=>$offer->deal_status==='offer','reference'=>(float)$offer->reference_price,
                     'saving'=>(float)$offer->reference_price-(float)$offer->price,'percent'=>100*(1-(float)$offer->price/(float)$offer->reference_price)];
                 $feed[]=$offer;
+                $dealCount++;
+                // Keep only the newest feed entries; total deal count remains exact.
+                if(count($feed)>48){
+                    usort($feed,fn($a,$b)=>strcmp($b->deal_started_at,$a->deal_started_at)?:($b->id<=>$a->id));
+                    $feed=array_slice($feed,0,24);
+                }
             }
+            // Full titles, URLs and images are needed only for the short deal feed.
+            // Comparison groups keep the cheapest price and the fields used below.
+            if(!isset($groups[$key][$offer->store_id]) || (float)$offer->price<(float)$groups[$key][$offer->store_id]->price)
+                $groups[$key][$offer->store_id]=(object)['album_id'=>$offer->album_id,'format'=>$offer->format,'condition'=>$offer->condition,
+                    'price'=>$offer->price,'checked_at'=>$offer->checked_at,'deal'=>$offer->deal];
         }
         $cheap=['new'=>[],'used'=>[]];$discounts=[];
         foreach($stores as $store){
@@ -128,6 +145,6 @@ class StoreRankings {
         usort($discounts,fn($a,$b)=>($b['eligible']<=>$a['eligible'])?:($b['percent']<=>$a['percent'])?:($b['sample']<=>$a['sample'])?:($a['store']->id<=>$b['store']->id));
         usort($feed,fn($a,$b)=>strcmp($b->deal_started_at,$a->deal_started_at)?:($b->id<=>$a->id));
         return ['generated_at'=>now()->format('Y-m-d H:i:s'),'recommendations'=>$recommendations,'cheap'=>$cheap,'variety'=>$variety,'discounts'=>$discounts,'feed'=>array_slice($feed,0,24),
-            'offer_count'=>$offers->count(),'store_count'=>$stores->count(),'deal_count'=>count($feed)];
+            'offer_count'=>$offerCount,'store_count'=>$stores->count(),'deal_count'=>$dealCount];
     }
 }
