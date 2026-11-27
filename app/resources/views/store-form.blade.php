@@ -17,7 +17,13 @@
 <fieldset class="full"><legend>Programa de Tiendas Asociadas SoloDiscos</legend>
 <input type="hidden" name="commercial_agreement_active" value="0">
 <label class="check"><input name="commercial_agreement_active" type="checkbox" value="1" @checked(old('commercial_agreement_active',$store->commercial_agreement_active))> Acuerdo comercial activo</label>
+<p>Actívalo solo después de recibir el acuerdo formalizado por las partes. La marca administrativa no verifica una firma ni certifica el código del plugin.</p>
+<label>Referencia del documento firmado<input name="commercial_agreement_reference" maxlength="255" value="{{ old('commercial_agreement_reference',$store->commercial_agreement_reference) }}" placeholder="Notaría y folio o referencia verificable"></label>
+<label>Fecha de firma<input type="date" name="commercial_agreement_signed_at" value="{{ old('commercial_agreement_signed_at',$store->commercial_agreement_signed_at) }}"></label>
+<p>Comisión: 4% de productos pagados menos devoluciones, sin envío, IVA de los productos incluido. Versión del acuerdo: {{ config('partner-plan.version') }}.</p>
+@if($store->partner_plan_requested_at)<p>La tienda solicitó formalización el {{ $store->partner_plan_requested_at }} · {{ $store->partner_plan_requested_version }}.</p>@endif
 <p>Habilita el análisis completo de oportunidades de precio únicamente cuando la tienda también tenga el plugin conectado. No activa cobros automáticos ni modifica el ranking público.</p>
+<p>Desactivar un acuerdo que estaba activo registra su término y revoca la clave de la integración.</p>
 @if($store->exists)<p>Plugin: <strong>{{ $partnerAccess['plugin_connected']?'Conectado':'Sin conexión verificada' }}</strong> · Acceso actual: <strong>{{ $partnerAccess['full_access']?'Completo':'Muestra de hasta 5 resultados' }}</strong></p>
 @if($store->commercial_agreement_activated_at)<small>Última activación del acuerdo: {{ $store->commercial_agreement_activated_at->format('d/m/Y H:i') }}.</small>@endif
 @endif

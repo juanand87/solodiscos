@@ -13,6 +13,7 @@ class StoreIntegrationAccess {
         abort_unless($integration,401);
         $store=Store::find($integration->store_id);
         abort_unless($store && $store->active && app(StoreDomain::class)->host($store)===$integration->domain,403);
+        abort_if(!$store->commercial_agreement_active && $store->commercial_agreement_terminated_at,403);
         $request->attributes->set('integration_store',$store);
         $response=$next($request);
         if($response->isSuccessful())DB::table('store_integrations')->where('id',$integration->id)->where('token_hash',$integration->token_hash)

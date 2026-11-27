@@ -2,7 +2,7 @@
 Contributors: solodiscos
 Requires at least: 6.4
 Requires PHP: 7.4
-Stable tag: 1.1.0
+Stable tag: 1.2.0
 License: GPLv2 or later
 
 == Instalación ==
@@ -11,7 +11,7 @@ License: GPLv2 or later
 3. Requiere WooCommerce 8.5+. En WordPress: Plugins > Añadir plugin > Subir plugin. Sube el ZIP y actívalo.
 4. Genera una clave desde tu portal verificado de SoloDiscos.
 5. En WooCommerce > SoloDiscos pega la clave y pulsa Guardar y comprobar conexión.
-6. El historial se encola automáticamente al guardar una clave. También puedes reimportarlo manualmente.
+6. El historial atribuido se encola automáticamente al guardar una clave. También puedes reimportarlo manualmente.
 7. Activa WooCommerce > Ajustes > Avanzado > Características > Atribución de pedidos.
 
 == Panel simple y atribución (1.1.0) ==
@@ -73,3 +73,13 @@ Reemplazar o revocar una clave en el portal invalida inmediatamente la anterior.
 No conectes dos bases WooCommerce distintas a la misma tienda: los IDs de pedido podrían coincidir.
 Antes de distribuir, validar en un WooCommerce de pruebas con HPOS y almacenamiento clásico,
 incluyendo reembolso parcial/completo, compra con checkout clásico y bloques, borrado/restauración y cron.
+
+== Finalidad limitada (1.2.0) ==
+Solo se transmiten pedidos con origen nativo SoloDiscos. Pedidos de Google, directos u otras fuentes no se exportan.
+El plugin consulta localmente metadatos de atribución para identificar esos pedidos. No transmite datos de compradores ni líneas de productos.
+Se conserva únicamente una marca técnica _solodiscos_exported en pedidos enviados para retirar la atribución si cambia.
+La base de comisión suma importes de productos tras descuentos e IVA y resta devoluciones de productos, excluyendo envío y recargos.
+Devoluciones sin desglose suficiente dejan la base pendiente; nunca se infiere un valor cobrable. No se emiten cobros automáticos.
+La cancelación desde el portal revoca la clave; desactiva además el plugin en WordPress para detener sus tareas.
+Código PHP y estilos incluidos para revisión. Actualizar versiones anteriores, que podían enviar resúmenes no atribuidos.
+La firma del acuerdo comercial no constituye una auditoría ni una certificación de seguridad del software.

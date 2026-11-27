@@ -32,7 +32,7 @@
 @empty<p class="panel">No hay productos con estos filtros. La identificación y la condición deben estar resueltas para poder comparar.</p>@endforelse
 </div>
 @if($partnerAccess['full_access']){{ $products->links('pagination') }}@else
-<section class="panel"><h2>Acceso completo para tiendas asociadas</h2><p>Para acceder a más resultados, tu tienda debe conectar el plugin y contar con un acuerdo comercial activo en el Programa de Tiendas Asociadas SoloDiscos.</p><p>Conecta el plugin como primer paso. La activación del plan y sus condiciones comerciales se coordinan con SoloDiscos.</p><a class="button" href="{{ route('portal.integration') }}">Conectar mi tienda</a></section>
+<section class="panel"><h2>Acceso completo para tiendas asociadas</h2><p>Para acceder a más resultados, tu tienda debe conectar el plugin y contar con un acuerdo comercial activo en el Programa de Tiendas Asociadas SoloDiscos.</p><p>Conecta el plugin como primer paso. La activación del plan y sus condiciones comerciales se coordinan con SoloDiscos.</p><a class="button" href="{{ route('portal.plan') }}">Ver plan y acuerdo · 4%</a> <a href="{{ route('portal.integration') }}">Conectar mi tienda</a></section>
 <p class="portal-price-intro">Acuerdo comercial: <strong>{{ $partnerAccess['agreement_active']?'Activo':'Pendiente de activación por SoloDiscos' }}</strong> · Plugin: <strong>{{ $partnerAccess['plugin_connected']?'Conectado':'Pendiente de conexión verificada' }}</strong>.</p>
 @endif
 @endsection

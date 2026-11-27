@@ -34,19 +34,40 @@ class StoreIntegrationController extends Controller {
             'total'=>'required|numeric|min:0|max:999999999999.99','refunded'=>'required|numeric|min:0|lte:total',
             'units'=>'required|integer|min:0|max:1000000','refunded_units'=>'required|integer|min:0|lte:units',
             'attributed_to_solodiscos'=>'sometimes|boolean',
+            'products_total'=>'sometimes|nullable|numeric|min:0|max:999999999999.99',
+            'products_refunded'=>'sometimes|nullable|numeric|min:0|lte:products_total',
+            'commission_base'=>'sometimes|nullable|numeric|min:0|lte:products_total',
         ]);
+        if(isset($data['commission_base'])){
+            $r->validate(['products_total'=>'required|numeric','products_refunded'=>'required|numeric']);
+            if(abs((float)$data['commission_base']-max(0,(float)$data['products_total']-(float)$data['products_refunded']))>0.02)throw \Illuminate\Validation\ValidationException::withMessages(['commission_base'=>'La base debe coincidir con productos menos devoluciones de productos, sin envío.']);
+        }
+        if(!array_key_exists('products_total',$data))$data+=['products_total'=>null,'products_refunded'=>null,'commission_base'=>null];
         $store=$r->attributes->get('integration_store');
         // All source timestamps are UTC; reporting uses the same UTC calendar in both applications.
         foreach(['ordered_at','source_updated_at'] as $field)$data[$field]=\Carbon\Carbon::parse($data[$field])->utc()->format('Y-m-d H:i:s');
         DB::transaction(function()use($data,$store){
             DB::table('store_integrations')->where('store_id',$store->id)->lockForUpdate()->first();
             $query=DB::table('store_orders')->where('store_id',$store->id)->where('external_id',$data['external_id']);$old=$query->first();
+            // Legacy/other-source orders are never inserted. A previously attributed order can still receive its refund/status update.
+            $attributed=isset($data['attributed_to_solodiscos'])?(bool)$data['attributed_to_solodiscos']:null;
+            if($attributed!==true && (!$old || !$old->attributed_to_solodiscos))return;
+            if($attributed===false){
+                if($old->source_updated_at<=$data['source_updated_at'])$query->update(['attributed_to_solodiscos'=>false,'source_updated_at'=>$data['source_updated_at'],'updated_at'=>now()]);
+                return;
+            }
             if(!$old || $old->source_updated_at<=$data['source_updated_at']){
                 if($old)$query->update($data+['updated_at'=>now()]);
                 else DB::table('store_orders')->insert($data+['store_id'=>$store->id,'created_at'=>now(),'updated_at'=>now()]);
             }
             DB::table('store_integrations')->where('store_id',$store->id)->update(['last_sync_at'=>now('UTC')]);
         });
+        return response()->json(['received'=>true]);
+    }
+    public function withdraw(Request $r){
+        $data=$r->validate(['external_id'=>'required|string|max:64|regex:/^[a-zA-Z0-9_-]+$/D','source_updated_at'=>'required|date_format:Y-m-d\TH:i:s\Z']);
+        $at=\Carbon\Carbon::parse($data['source_updated_at'])->utc()->format('Y-m-d H:i:s');$store=$r->attributes->get('integration_store');
+        DB::table('store_orders')->where('store_id',$store->id)->where('external_id',$data['external_id'])->where('source_updated_at','<=',$at)->update(['attributed_to_solodiscos'=>false,'source_updated_at'=>$at,'updated_at'=>now()]);
         return response()->json(['received'=>true]);
     }
     public function summary(Request $r,StoreSales $sales,EngagementReports $reports){
@@ -75,7 +96,7 @@ class StoreIntegrationController extends Controller {
         $r->validate(['page'=>'sometimes|integer|min:1|max:1000000']);
         $store=$r->attributes->get('integration_store');[$from,$to]=$this->period($r);
         return response()->json($sales->attributed($store->id,$from,$to)
-            ->select('external_id','ordered_at','status','currency','total','refunded')->selectRaw('(total - refunded) as net')
+            ->select('external_id','ordered_at','status','currency','total','refunded','products_total','products_refunded','commission_base')->selectRaw('(total - refunded) as net')
             ->orderByDesc('ordered_at')->orderByDesc('id')->paginate(20)->appends(['from'=>$from,'to'=>$to]));
     }
 }

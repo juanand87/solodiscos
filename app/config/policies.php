@@ -9,7 +9,7 @@ return [
             'intro' => 'Comparas en SoloDiscos.cl y compras directamente en el sitio de cada tienda.',
             'sections' => [
                 ['title' => 'Nuestro papel', 'paragraphs' => [
-                    'SoloDiscos.cl es un buscador y comparador de publicaciones de CDs y vinilos de tiendas independientes. No vendemos los discos, no recibimos pagos, no procesamos pedidos y no reservamos existencias.',
+                    'SoloDiscos.cl es un buscador y comparador de publicaciones de CDs y vinilos de tiendas independientes. No vendemos los discos, no recibimos los pagos de tus compras, no procesamos pedidos y no reservamos existencias.',
                     'Al seleccionar «Ver tienda» o «Ver en tienda», accederás al sitio del vendedor. La compra se realiza allí, con los medios de pago y las condiciones que informe esa tienda.',
                 ]],
                 ['title' => 'Antes de comprar', 'items' => [
@@ -24,7 +24,7 @@ return [
                 ]],
                 ['title' => 'Pedidos, envíos y posventa', 'paragraphs' => [
                     'El vendedor gestiona el pago, el comprobante de compra, la entrega, los cambios, las devoluciones y las garantías, conforme a la normativa aplicable. Las consultas sobre un pedido deben dirigirse a la tienda en la que lo realizaste.',
-                    'SoloDiscos no dispone de los datos de tu pedido ni puede cancelarlo o devolver el pago. Esto no limita los derechos que te reconoce la ley ni excluye las obligaciones que correspondan a SoloDiscos por su propio servicio de información.',
+                    'SoloDiscos no procesa tu pedido ni puede cancelarlo o devolver el pago. Las tiendas asociadas pueden comunicar datos técnicos mínimos de pedidos atribuidos para medir conversiones, sin datos personales de compradores. Esto no limita los derechos que te reconoce la ley ni excluye las obligaciones que correspondan a SoloDiscos por su propio servicio de información.',
                 ]],
             ],
         ],
@@ -76,10 +76,14 @@ return [
                     'Algunas portadas y logos se cargan desde servidores de las tiendas o sus proveedores. Al solicitar una imagen, tu navegador puede comunicarles la dirección IP y otros datos técnicos necesarios para entregarla, incluso sin pulsar «Ver tienda».',
                     'Cuando visitas una tienda externa, esa tienda aplica su propia política de privacidad y sus cookies. SoloDiscos no recibe por ese hecho los datos de tu pedido, tu tarjeta ni una confirmación de compra.',
                 ]],
+                ['title' => 'Integración voluntaria de tiendas asociadas', 'paragraphs' => [
+                    'El plugin 1.2.0 para WooCommerce permite medir pedidos atribuidos al origen exacto SoloDiscos según los metadatos nativos de la tienda. Envía identificador técnico, estado, fechas, moneda, importes, devoluciones y cantidades de esos pedidos; no nombres, correos, domicilios, tarjetas o contraseñas de compradores. No exporta pedidos de otras fuentes. La tienda puede revisar el código incluido en el paquete y revocar la conexión.',
+                    'Los datos privados de pedidos no se publican ni se comparten con otras tiendas. Se utilizan para medición, revisión de atribución y conciliación del programa. La integración es separada de la consulta de catálogos públicos. Las instalaciones anteriores deben actualizarse: las versiones antiguas podían enviar resúmenes de pedidos sin atribución. Los registros anteriores no se borran automáticamente; su conservación y eliminación deben revisarse con la tienda y las obligaciones aplicables.',
+                ]],
                 ['title' => 'Analítica, conservación y derechos', 'paragraphs' => [
-                    'Medimos consultas de fichas y clics hacia las tiendas mediante contadores diarios por álbum, formato, publicación y tienda, para conocer el interés por los discos y ofrecer estadísticas agregadas. No registramos ventas confirmadas ni utilizamos esta medición para publicidad comportamental. El proveedor de alojamiento puede incorporar su propia medición técnica de tráfico.',
+                    'Medimos consultas de fichas y clics hacia las tiendas mediante contadores diarios por álbum, formato, publicación y tienda, para conocer el interés por los discos y ofrecer estadísticas agregadas. Esta medición de consultas y clics no confirma ventas y no se utiliza para publicidad comportamental. Las tiendas que instalan la integración pueden comunicar por separado pedidos atribuidos a SoloDiscos. El proveedor de alojamiento puede incorporar su propia medición técnica de tráfico.',
                     'El almacenamiento de sesión del navegador es temporal. Para reducir repeticiones utilizamos identificadores temporales obtenidos mediante hash con clave en la caché, durante hasta 30 minutos, y un límite temporal de solicitudes; no guardamos direcciones IP, agentes de navegador ni identificadores de visitantes en los contadores estadísticos. Las estadísticas diarias se conservan como historial agregado, sin fichas individuales de visitantes. Los plazos de los registros del alojamiento y de la aplicación dependen de su configuración; esta página no fija un plazo que no haya sido verificado. El historial de precios y stock describe publicaciones de tiendas y no acredita la identidad de compradores.',
-                    'El acceso, la rectificación, la eliminación y los demás derechos sobre datos personales se rigen por la normativa aplicable. La identificación legal del responsable, el canal específico para ejercer estos derechos y los plazos de conservación están pendientes de incorporación; esta página no los sustituye.',
+                    'El acceso, la rectificación, la eliminación y los demás derechos sobre datos personales se rigen por la normativa aplicable. El responsable informado es Articulos Musicales Juan Fica Sepulveda EIRL, RUT 76.879.846-K. El representante legal, domicilio, canal específico para ejercer estos derechos y plazos de conservación están pendientes de incorporación; esta página no los sustituye.',
                 ]],
             ],
         ],

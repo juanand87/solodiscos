@@ -1,8 +1,8 @@
 <?php
 /**
  * Plugin Name: SoloDiscos para WooCommerce
- * Description: Sincroniza ventas sin datos personales y consulta estadísticas de SoloDiscos.
- * Version: 1.1.0
+ * Description: Sincroniza solo ventas atribuidas a SoloDiscos sin datos personales de compradores.
+ * Version: 1.2.0
  * Requires at least: 6.4
  * Requires PHP: 7.4
  * Requires Plugins: woocommerce
@@ -21,7 +21,7 @@ add_action('before_woocommerce_init', function () {
 final class SoloDiscos_WooCommerce {
     const API = 'https://www.solodiscos.cl/api/v1/woocommerce/';
     const GROUP = 'solodiscos';
-    const VERSION = '1.1.0';
+    const VERSION = '1.2.0';
     const CACHE = 'solodiscos_dashboard_v2';
     public static function init() {
         add_action('admin_menu', [__CLASS__, 'menu']);
@@ -106,13 +106,25 @@ final class SoloDiscos_WooCommerce {
         return in_array($type, ['utm', 'referral'], true) && in_array($source, ['solodiscos.cl', 'www.solodiscos.cl'], true);
     }
     public static function enqueue($id) {
-        if (get_option('solodiscos_token') && function_exists('as_enqueue_async_action')) {
+        $order = get_option('solodiscos_token') ? wc_get_order($id) : null;
+        if ($order && (self::attributed($order) || $order->get_meta('_solodiscos_exported') === 'yes') && function_exists('as_enqueue_async_action')) {
             as_enqueue_async_action('solodiscos_send_order', [(int)$id, 0], self::GROUP, true);
         }
     }
     private static function payload($order) {
-        $units = 0;
-        foreach ($order->get_items() as $item) { $units += max(0, (int)$item->get_quantity()); }
+        $units = 0; $products = 0; $products_refunded = 0; $itemized_refunds = 0;
+        foreach ($order->get_items('line_item') as $item) { $units += max(0, (int)$item->get_quantity()); $products += (float)$item->get_total() + (float)$item->get_total_tax(); }
+        foreach ($order->get_refunds() as $refund) {
+            foreach ($refund->get_items(['line_item', 'shipping', 'fee']) as $item) {
+                $amount = abs((float)$item->get_total() + (float)$item->get_total_tax());
+                $itemized_refunds += $amount;
+                if ($item->get_type() === 'line_item') { $products_refunded += $amount; }
+            }
+        }
+        $products = max(0, $products);
+        $fully_refunded = (float)$order->get_total() > 0 && (float)$order->get_total_refunded() >= (float)$order->get_total();
+        if ($fully_refunded) { $products_refunded = $products; }
+        $known = $fully_refunded || (abs((float)$order->get_total_refunded() - $itemized_refunds) < 0.02 && $products <= (float)$order->get_total() + 0.02);
         $created = $order->get_date_created();
         $modified = $order->get_date_modified();
         return ['external_id' => (string)$order->get_id(), 'status' => $order->get_status(), 'currency' => $order->get_currency(),
@@ -121,19 +133,26 @@ final class SoloDiscos_WooCommerce {
             'paid' => (bool)($order->get_date_paid() || $order->is_paid()), 'total' => (string)$order->get_total(),
             'refunded' => (string)min((float)$order->get_total(), (float)$order->get_total_refunded()),
             'units' => $units, 'refunded_units' => min($units, abs((int)$order->get_item_count_refunded())),
-            'attributed_to_solodiscos' => self::attributed($order)];
+            'attributed_to_solodiscos' => true,
+            'products_total' => number_format(max(0, $products), 2, '.', ''),
+            'products_refunded' => number_format(min($products, $products_refunded), 2, '.', ''),
+            'commission_base' => $known ? number_format(max(0, $products - $products_refunded), 2, '.', '') : null];
     }
     public static function send($id, $attempt = 0) {
         if (!get_option('solodiscos_token')) { return; }
         $order = wc_get_order($id);
         if (!$order || $order->get_type() !== 'shop_order') { return; }
-        $result = self::request('orders', self::payload($order));
+        $attributed = self::attributed($order);
+        if (!$attributed && $order->get_meta('_solodiscos_exported') !== 'yes') { return; }
+        $withdrawal = ['external_id' => (string)$id, 'source_updated_at' => gmdate('Y-m-d\TH:i:s\Z')];
+        $result = self::request($attributed ? 'orders' : 'orders/withdraw', $attributed ? self::payload($order) : $withdrawal);
         if (is_wp_error($result)) {
             update_option('solodiscos_last_error', $result->get_error_message(), false);
             if ($attempt < 8) { as_schedule_single_action(time() + min(21600, 60 * pow(2, $attempt)), 'solodiscos_send_order', [(int)$id, (int)$attempt + 1], self::GROUP); }
             else { throw new RuntimeException('SoloDiscos: envío agotó reintentos. Reimporta el historial después de resolver la conexión.'); }
             return;
         }
+        if ($attributed && $order->get_meta('_solodiscos_exported') !== 'yes') { $order->update_meta_data('_solodiscos_exported', 'yes'); $order->save_meta_data(); }
         update_option('solodiscos_last_sent', gmdate('Y-m-d H:i:s').' UTC', false);
         delete_option('solodiscos_last_error');
     }
@@ -141,13 +160,18 @@ final class SoloDiscos_WooCommerce {
         if (!get_option('solodiscos_token')) { return; }
         $order = wc_get_order($id);
         if (!$order || $order->get_type() !== 'shop_order') { return; }
+        if (!self::attributed($order)) {
+            if ($order->get_meta('_solodiscos_exported') === 'yes') { as_enqueue_async_action('solodiscos_deleted_order', [['external_id'=>(string)$id,'source_updated_at'=>gmdate('Y-m-d\TH:i:s\Z'),'withdraw_attribution'=>true],0], self::GROUP); }
+            return;
+        }
         // A queued tombstone survives permanent deletion of the source order.
         $data = self::payload($order); $data['status'] = 'trash'; $data['source_updated_at'] = gmdate('Y-m-d\TH:i:s\Z');
         as_enqueue_async_action('solodiscos_deleted_order', [$data, 0], self::GROUP);
     }
     public static function sendDeleted($data, $attempt = 0) {
-        if (!get_option('solodiscos_token')) { return; }
-        $result = self::request('orders', $data);
+        if (!get_option('solodiscos_token') || (empty($data['attributed_to_solodiscos']) && empty($data['withdraw_attribution']))) { return; }
+        $withdraw = !empty($data['withdraw_attribution']);
+        $result = self::request($withdraw ? 'orders/withdraw' : 'orders', $withdraw ? ['external_id'=>$data['external_id'],'source_updated_at'=>$data['source_updated_at']] : $data);
         if (is_wp_error($result)) {
             update_option('solodiscos_last_error', $result->get_error_message(), false);
             if ($attempt < 8) { as_schedule_single_action(time() + min(21600, 60 * pow(2, $attempt)), 'solodiscos_deleted_order', [$data, (int)$attempt + 1], self::GROUP); }

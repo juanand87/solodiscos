@@ -47,6 +47,9 @@ Route::prefix('tiendas')->name('portal.')->group(function(){
         Route::get('/estadisticas',[$portal,'statistics'])->name('statistics');
         Route::get('/estadisticas/discos/{album}/{format}',\App\Http\Controllers\EngagementDetailController::class)->whereNumber('album')->where('format','cd|vinyl')->name('statistics.disc');
         Route::get('/precios',[$portal,'prices'])->name('prices');
+        Route::get('/plan',[\App\Http\Controllers\PartnerPlanController::class,'show'])->name('plan');
+        Route::post('/plan/solicitar',[\App\Http\Controllers\PartnerPlanController::class,'request'])->middleware('throttle:portal-plan-request')->name('plan.request');
+        Route::post('/plan/terminar',[\App\Http\Controllers\PartnerPlanController::class,'terminate'])->name('plan.terminate');
         Route::get('/solicitudes',[$portal,'corrections'])->name('corrections');
         Route::get('/catalogo/{offer}/corregir',[$portal,'correctionForm'])->whereNumber('offer')->name('correction');
         Route::post('/catalogo/{offer}/corregir',[$portal,'requestCorrection'])->whereNumber('offer')->middleware('throttle:portal-correction')->name('correction.submit');

@@ -16,7 +16,7 @@ class StoreIntegrationTest extends TestCase {
         return session('integration_token');
     }
     private function order(array $overrides=[]): array {
-        return array_replace(['external_id'=>'123','status'=>'completed','currency'=>'CLP','ordered_at'=>'2026-11-20T12:00:00Z','source_updated_at'=>'2026-11-20T13:00:00Z','paid'=>true,'total'=>'20000.00','refunded'=>'0.00','units'=>2,'refunded_units'=>0],$overrides);
+        return array_replace(['external_id'=>'123','status'=>'completed','currency'=>'CLP','ordered_at'=>'2026-11-20T12:00:00Z','source_updated_at'=>'2026-11-20T13:00:00Z','paid'=>true,'total'=>'20000.00','refunded'=>'0.00','units'=>2,'refunded_units'=>0,'attributed_to_solodiscos'=>true],$overrides);
     }
     public function test_keys_are_hashed_rotated_revoked_and_require_verified_store_access(): void {
         $this->get(route('portal.integration'))->assertRedirect(route('portal.login'));
@@ -77,7 +77,7 @@ class StoreIntegrationTest extends TestCase {
             ['attributed_to_solodiscos'=>true,'paid'=>false],
             ['attributed_to_solodiscos'=>true,'status'=>'cancelled'],
             ['attributed_to_solodiscos'=>true,'ordered_at'=>'2025-01-01T12:00:00Z'],
-        ] as $i=>$changes)$this->withToken($key)->postJson('/api/v1/woocommerce/orders',$this->order(['external_id'=>(string)$i]+$changes))->assertOk();
+        ] as $i=>$changes){$payload=$this->order(['external_id'=>(string)$i]+$changes);if($i===3)unset($payload['attributed_to_solodiscos']);$this->withToken($key)->postJson('/api/v1/woocommerce/orders',$payload)->assertOk();}
         $album=\App\Models\Album::create(['artist'=>'Artist','title'=>'Album','match_key'=>'attribution-test']);
         DB::table('engagement_days')->insert(['metric_key'=>'attribution-clicks','day'=>'2026-11-20','kind'=>'click','album_id'=>$album->id,'format'=>'cd','store_id'=>$account->store_id,'total'=>20]);
         $other=$this->account('other.example');$otherKey=$this->key($other);
@@ -101,11 +101,27 @@ class StoreIntegrationTest extends TestCase {
     }
     public function test_legacy_snapshots_never_invent_or_erase_attribution(): void {
         $key=$this->key($this->account());
-        $this->withToken($key)->postJson('/api/v1/woocommerce/orders',$this->order())->assertOk();
+        $legacy=$this->order();unset($legacy['attributed_to_solodiscos']);
+        $this->withToken($key)->postJson('/api/v1/woocommerce/orders',$legacy)->assertOk();
+        $this->assertDatabaseCount('store_orders',0);
         $this->assertNull(DB::table('store_orders')->value('attributed_to_solodiscos'));
         $this->postJson('/api/v1/woocommerce/orders',$this->order(['attributed_to_solodiscos'=>true]))->assertOk();
-        $this->postJson('/api/v1/woocommerce/orders',$this->order(['source_updated_at'=>'2026-11-21T13:00:00Z','refunded'=>20000]))->assertOk();
+        $legacy['source_updated_at']='2026-11-21T13:00:00Z';$legacy['refunded']=20000;
+        $this->postJson('/api/v1/woocommerce/orders',$legacy)->assertOk();
         $this->assertEquals(1,DB::table('store_orders')->value('attributed_to_solodiscos'));
         $this->getJson('/api/v1/woocommerce/dashboard?from=2026-11-01&to=2026-11-30')->assertOk()->assertJsonPath('orders',1)->assertJsonPath('amounts.0.net',fn($value)=>(float)$value===0.0);
+    }
+    public function test_unrelated_orders_are_ignored_and_product_base_is_validated_and_scoped(): void {
+        $account=$this->account();$key=$this->key($account);
+        $this->withToken($key)->postJson('/api/v1/woocommerce/orders',$this->order(['attributed_to_solodiscos'=>false]))->assertOk();$this->assertDatabaseCount('store_orders',0);
+        $data=$this->order(['refunded'=>1000,'products_total'=>18000,'products_refunded'=>1000,'commission_base'=>17000]);
+        $this->postJson('/api/v1/woocommerce/orders',$data)->assertOk();$this->assertDatabaseHas('store_orders',['store_id'=>$account->store_id,'commission_base'=>17000]);
+        $bad=$data;$bad['commission_base']=18000;$this->postJson('/api/v1/woocommerce/orders',$bad)->assertUnprocessable()->assertJsonValidationErrors('commission_base');
+        $this->getJson('/api/v1/woocommerce/attributed-orders?from=2026-11-01&to=2026-11-30')->assertOk()->assertJsonPath('data.0.commission_base',fn($value)=>(float)$value===17000.0);
+        $other=$this->account('elsewhere.example');$otherKey=$this->key($other);
+        $withdraw=['external_id'=>'123','source_updated_at'=>'2026-11-21T13:00:00Z'];$this->withToken($otherKey)->postJson('/api/v1/woocommerce/orders/withdraw',$withdraw)->assertOk();
+        $this->assertDatabaseHas('store_orders',['store_id'=>$account->store_id,'attributed_to_solodiscos'=>true]);
+        $this->withToken($key)->postJson('/api/v1/woocommerce/orders/withdraw',$withdraw)->assertOk();$this->assertDatabaseHas('store_orders',['store_id'=>$account->store_id,'attributed_to_solodiscos'=>false]);
+        $this->getJson('/api/v1/woocommerce/attributed-orders?from=2026-11-01&to=2026-11-30')->assertOk()->assertJsonPath('total',0);
     }
 }

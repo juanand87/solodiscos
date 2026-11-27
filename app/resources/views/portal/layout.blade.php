@@ -5,7 +5,7 @@
 <div class="portal-shell">
 <div class="heading"><div><span class="eyebrow">PORTAL DE TIENDAS</span><h1>@yield('portal-title','Tu tienda en SoloDiscos')</h1>@isset($store)<p>{{ $store->name }}</p>@endisset</div></div>
 @if(Auth::guard('store')->check())
-<nav class="portal-nav" aria-label="Portal de tiendas"><a href="{{ route('portal.dashboard') }}">Resumen</a><a href="{{ route('portal.catalog') }}">Mi catálogo</a><a href="{{ route('portal.prices') }}">Oportunidad de mejora $</a><a href="{{ route('portal.statistics') }}">Estadísticas</a><a href="{{ route('portal.corrections') }}">Solicitudes</a><a href="{{ route('portal.integration') }}">Integración</a><form method="post" action="{{ route('portal.logout') }}">@csrf<button class="link">Salir del portal</button></form></nav>
+<nav class="portal-nav" aria-label="Portal de tiendas"><a href="{{ route('portal.dashboard') }}">Resumen</a><a href="{{ route('portal.catalog') }}">Mi catálogo</a><a href="{{ route('portal.prices') }}">Oportunidad de mejora $</a><a href="{{ route('portal.statistics') }}">Estadísticas</a><a href="{{ route('portal.corrections') }}">Solicitudes</a><a href="{{ route('portal.plan') }}">Plan y acuerdo</a><a href="{{ route('portal.integration') }}">Integración</a><form method="post" action="{{ route('portal.logout') }}">@csrf<button class="link">Salir del portal</button></form></nav>
 @endif
 @yield('portal-content')
 </div>

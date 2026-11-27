@@ -45,7 +45,8 @@ $sales_url = add_query_arg(['sd_view' => 'sales'], $base_url).'#sd-sales';
         <?php if (is_wp_error($orders)): ?><p class="sd-alert" role="alert"><?php echo esc_html($orders->get_error_message()); ?></p>
         <?php elseif (empty($orders['data'])): ?><div class="sd-empty"><h3>Todavía no hay ventas atribuidas en este período.</h3><p>Las compras aparecerán aquí cuando WooCommerce registre SoloDiscos como origen y se complete su sincronización.</p></div>
         <?php else: ?>
-        <div class="sd-table-scroll"><table class="sd-table"><thead><tr><th scope="col">Pedido</th><th scope="col">Fecha</th><th scope="col">Estado</th><th scope="col">Total</th><th scope="col">Devoluciones</th><th scope="col">Monto neto</th></tr></thead><tbody>
+        <p>La base de productos excluye el envío e incluye IVA, después de descuentos y devoluciones de productos. «Pendiente» requiere revisión del desglose; el monto neto del pedido no es automáticamente la base de comisión.</p>
+        <div class="sd-table-scroll"><table class="sd-table"><thead><tr><th scope="col">Pedido</th><th scope="col">Fecha</th><th scope="col">Estado</th><th scope="col">Total</th><th scope="col">Devoluciones</th><th scope="col">Monto neto</th><th scope="col">Base de productos</th></tr></thead><tbody>
         <?php foreach ($orders['data'] as $row):
             $id = ctype_digit((string)$row['external_id']) ? (int)$row['external_id'] : 0;
             $order = $id ? wc_get_order($id) : false;
@@ -54,6 +55,7 @@ $sales_url = add_query_arg(['sd_view' => 'sales'], $base_url).'#sd-sales';
             <tr><td><?php if ($order && $order->get_type() === 'shop_order'): ?><a class="sd-order-link" href="<?php echo esc_url($order->get_edit_order_url()); ?>">#<?php echo esc_html($order->get_order_number()); ?><span>Abrir pedido</span></a><?php else: ?>#<?php echo esc_html($row['external_id']); ?><span class="sd-caption">No disponible en esta instalación</span><?php endif; ?></td>
                 <td><?php echo esc_html(wp_date('d/m/Y H:i', $when->getTimestamp(), new DateTimeZone($summary['timezone']))); ?></td><td><span class="sd-order-status"><?php echo esc_html(wc_get_order_status_name($row['status'])); ?></span></td>
                 <?php foreach (['total','refunded','net'] as $field): ?><td><?php echo wp_kses_post(wc_price($row[$field], ['currency' => $row['currency']])); ?> <small><?php echo esc_html($row['currency']); ?></small></td><?php endforeach; ?>
+                <td><?php echo isset($row['commission_base']) ? wp_kses_post(wc_price($row['commission_base'], ['currency'=>$row['currency']])) : 'Pendiente'; ?></td>
             </tr>
         <?php endforeach; ?>
         </tbody></table></div>

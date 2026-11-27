@@ -61,7 +61,8 @@ class AdminController extends Controller {
             'currency'=>['required',Rule::in(['CLP','USD','EUR'])],'default_condition'=>['required',Rule::in(['unknown','new','used','category'])],
             'new_condition_categories'=>'nullable|string|max:5000','used_condition_categories'=>'nullable|string|max:5000',
             'category_condition_fallback'=>['sometimes','required',Rule::in(['unknown','new','used'])],
-            'interval_hours'=>'required|integer|min:6|max:168','active'=>'sometimes|boolean','logo_url'=>'nullable|url:http,https|max:2000','commercial_agreement_active'=>'sometimes|boolean'],
+            'interval_hours'=>'required|integer|min:6|max:168','active'=>'sometimes|boolean','logo_url'=>'nullable|url:http,https|max:2000','commercial_agreement_active'=>'sometimes|boolean',
+            'commercial_agreement_reference'=>'nullable|string|max:255','commercial_agreement_signed_at'=>'nullable|date_format:Y-m-d|before_or_equal:today'],
             ['url.unique'=>'Esta tienda ya está registrada. Usa el registro existente para actualizar su catálogo.']);
         if($data['default_condition']==='category'){
             $categories=app(\App\Services\CategoryConditions::class);
@@ -77,11 +78,22 @@ class AdminController extends Controller {
         $data['url']=rtrim($data['url'],'/'); $data['active']=$r->boolean('active');
         if($r->has('commercial_agreement_active')){
             $data['commercial_agreement_active']=$r->boolean('commercial_agreement_active');
+            if($data['commercial_agreement_active']){
+                $r->validate(['commercial_agreement_reference'=>'required|string|max:255','commercial_agreement_signed_at'=>'required|date_format:Y-m-d|before_or_equal:today']);
+                if(!$store?->commercial_agreement_active || $store->commercial_agreement_reference!==$data['commercial_agreement_reference'] || $store->commercial_agreement_signed_at!==$data['commercial_agreement_signed_at']){
+                    $data['commercial_agreement_version']=config('partner-plan.version');
+                    $package=base_path('integrations/solodiscos-woocommerce.zip');$data['commercial_agreement_plugin_sha256']=is_file($package)?hash_file('sha256',$package):null;
+                }
+                $data['commercial_agreement_terminated_at']=null;$data['commercial_agreement_terminated_by']=null;
+            }elseif($store?->commercial_agreement_active){
+                $data['commercial_agreement_terminated_at']=now();$data['commercial_agreement_terminated_by']=null;
+            }
             if($data['commercial_agreement_active'] && !$store?->commercial_agreement_active){
                 $data['commercial_agreement_activated_at']=now();$data['commercial_agreement_activated_by']=$r->user('web')->id;
             }
         }
         $updated=app(\App\Services\StoreConditions::class)->configure($store??new Store,$data);
+        if(!empty($data['commercial_agreement_terminated_at']) && $store?->exists)\Illuminate\Support\Facades\DB::table('store_integrations')->where('store_id',$store->id)->update(['token_hash'=>null,'connected_token_hash'=>null,'updated_at'=>now()]);
         return redirect()->route('admin')->with('status',"Tienda guardada. Condición actualizada en $updated publicaciones; los rankings se recalcularán automáticamente.");
     }
     public function scrape(Store $store,ScrapeDispatcher $dispatcher) {

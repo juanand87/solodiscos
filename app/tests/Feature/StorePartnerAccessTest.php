@@ -44,12 +44,28 @@ class StorePartnerAccessTest extends TestCase {
         DB::table('store_integrations')->update(['domain'=>'partner.example']);$this->delete(route('portal.integration.revoke'))->assertRedirect();$this->sample();
     }
     public function test_only_admin_can_activate_agreement_and_activation_audit_is_preserved(): void {
-        $account=$this->account();$store=$account->store;$data=['name'=>$store->name,'url'=>$store->url,'platform'=>$store->platform,'currency'=>'CLP','default_condition'=>'unknown','interval_hours'=>48,'active'=>1,'commercial_agreement_active'=>1];
+        $account=$this->account();$store=$account->store;$data=['name'=>$store->name,'url'=>$store->url,'platform'=>$store->platform,'currency'=>'CLP','default_condition'=>'unknown','interval_hours'=>48,'active'=>1,'commercial_agreement_active'=>1,'commercial_agreement_reference'=>'Folio de prueba','commercial_agreement_signed_at'=>now()->toDateString()];
         $this->actingAs($account,'store')->put(route('stores.update',$store),$data)->assertRedirect(route('login'));$this->assertFalse($store->fresh()->commercial_agreement_active);
         $client=\Mockery::mock(StoreClient::class);$client->shouldReceive('validateUrl')->andReturn(['93.184.215.14']);$this->app->instance(StoreClient::class,$client);
         $admin=User::factory()->create();$this->actingAs($admin,'web')->get(route('stores.edit',$store))->assertOk()->assertSee('Acuerdo comercial activo');
         $this->put(route('stores.update',$store),$data)->assertSessionHasNoErrors();$store->refresh();$this->assertTrue($store->commercial_agreement_active);$this->assertSame($admin->id,$store->commercial_agreement_activated_by);$activated=$store->commercial_agreement_activated_at->toDateTimeString();
         $this->travel(2)->hours();$this->put(route('stores.update',$store),$data)->assertSessionHasNoErrors();$this->assertSame($activated,$store->fresh()->commercial_agreement_activated_at->toDateTimeString());
         $data['commercial_agreement_active']=0;$this->put(route('stores.update',$store),$data)->assertSessionHasNoErrors();$this->assertFalse($store->fresh()->commercial_agreement_active);$this->travelBack();
+    }
+    public function test_plan_request_is_nonbinding_scoped_and_shows_legal_identity_and_source(): void {
+        $account=$this->account();$other=Store::create(['name'=>'Other','url'=>'https://other.example','platform'=>'shopify','active'=>true]);
+        $this->get(route('portal.plan'))->assertRedirect(route('portal.login'));
+        $this->actingAs($account,'store')->get(route('portal.plan'))->assertOk()->assertSee('4% por venta atribuida')->assertSee('76.879.846-K')->assertSee('IVA de los productos incluido')->assertSee('Borrador')->assertSee(route('portal.integration.download'));
+        $this->post(route('portal.plan.request'),['store_id'=>$other->id,'commercial_agreement_active'=>1])->assertRedirect(route('portal.plan'))->assertSessionHasNoErrors();
+        $this->assertNotNull($account->store->fresh()->partner_plan_requested_at);$this->assertFalse($account->store->fresh()->commercial_agreement_active);$this->assertNull($other->fresh()->partner_plan_requested_at);
+    }
+    public function test_store_can_terminate_immediately_without_altering_another_store_or_erasing_records(): void {
+        $account=$this->account();$store=$account->store;$store->update(['commercial_agreement_active'=>true]);$this->integration($store,str_repeat('f',64));
+        $other=Store::create(['name'=>'Other','url'=>'https://other.example','platform'=>'shopify','active'=>true,'commercial_agreement_active'=>true]);
+        $this->actingAs($account,'store')->post(route('portal.plan.terminate'))->assertSessionHasErrors('confirm_termination');$this->assertTrue($store->fresh()->commercial_agreement_active);
+        $this->post(route('portal.plan.terminate'),['confirm_termination'=>1,'store_id'=>$other->id])->assertRedirect(route('portal.plan'))->assertSessionHasNoErrors();
+        $this->assertFalse($store->fresh()->commercial_agreement_active);$this->assertNotNull($store->fresh()->commercial_agreement_terminated_at);$this->assertTrue($other->fresh()->commercial_agreement_active);$this->assertNull(DB::table('store_integrations')->where('store_id',$store->id)->value('token_hash'));
+        $this->withToken(str_repeat('f',64))->getJson('/api/v1/woocommerce/summary')->assertUnauthorized();
+        $this->post(route('portal.plan.request'))->assertRedirect();$this->assertFalse($store->fresh()->commercial_agreement_active);
     }
 }
