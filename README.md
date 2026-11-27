@@ -67,6 +67,8 @@ El programador revisa cada cinco minutos qué tiendas requieren actualización. 
 
 En el hosting deben ejecutarse tanto el programador como el trabajador de colas. «Extraer ahora» agrega un trabajo a la cola; si aparece «Esperando al trabajador», el código web funciona pero falta atender esa cola.
 
+El administrador incluye **Procesar pendientes** para iniciar `queue:drain` en segundo plano, sin mantener la página ocupada durante la extracción. Requiere sesión de administrador, CSRF y permite como máximo tres solicitudes por minuto. Comprueba el bloqueo del trabajador y espera una confirmación escrita por el proceso CLI antes de anunciar su inicio. En Linux utiliza un proceso desacoplado y en Windows lo inicia sin ventana visible. Si el hosting deshabilita `proc_open` o rechaza el proceso, muestra el motivo y conserva los trabajos en cola para atenderlos desde Terminal o cron. El registro del arranque está en `storage/logs/queue-button.log`. PHP CLI se detecta automáticamente; si la cuenta requiere una ruta particular, puede indicarse mediante `SCRAPER_CLI_PHP`. No es necesario modificar ni reemplazar `.env` para utilizar la detección automática. Este botón inicia los pendientes del momento; las tareas de cron siguen siendo necesarias para atender futuros trabajos automáticamente.
+
 Después de actualizar el código desde GitHub, desde la carpeta `app/` puedes atender los pendientes manualmente:
 
 ```bash

@@ -17,6 +17,7 @@ Route::middleware('auth')->prefix('admin')->group(function() {
     Route::get('/estadisticas',[\App\Http\Controllers\StatisticsController::class,'index'])->name('statistics.index');
     Route::get('/estadisticas/exportar',[\App\Http\Controllers\StatisticsController::class,'export'])->name('statistics.export');
     Route::get('/progreso',[AdminController::class,'progress'])->name('admin.progress');
+    Route::post('/procesar-pendientes',[AdminController::class,'processQueue'])->middleware('throttle:3,1')->name('admin.queue.start');
     Route::get('/portadas',[CoverController::class,'index'])->name('covers.index');
     Route::post('/portadas/comparar',[CoverController::class,'scan'])->name('covers.scan');
     Route::post('/portadas/aprobar-pagina',[CoverController::class,'acceptPage'])->name('covers.accept-page');

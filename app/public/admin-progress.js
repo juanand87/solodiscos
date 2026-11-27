@@ -1,4 +1,10 @@
 (() => {
+    const launchForm=document.querySelector('[data-worker-launch]');
+    if(launchForm){
+        const button=launchForm.querySelector('button');const label=button.textContent;
+        launchForm.addEventListener('submit',()=>{button.disabled=true;button.textContent='Iniciando…';});
+        window.addEventListener('pageshow',()=>{button.disabled=false;button.textContent=label;});
+    }
     const container = document.querySelector('[data-live-dashboard]');
     const status = document.getElementById('live-progress-status');
     if (!container || !status) return;

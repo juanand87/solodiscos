@@ -6,5 +6,5 @@ maintenance.php
 routes.php
 routes.scanned.php
 schedule-*
-queue-worker.lock
+queue-worker*
 services.json

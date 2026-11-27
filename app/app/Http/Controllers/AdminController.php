@@ -28,6 +28,16 @@ class AdminController extends Controller {
             'pending'=>Offer::whereNull('excluded_reason')->where(fn($q)=>$q->whereNull('album_id')->orWhere('format','unknown'))->count()];
     }
     public function index() { return view('admin',$this->dashboardData()); }
+    public function processQueue(\App\Services\QueueWorkerLauncher $launcher) {
+        try {$state=$launcher->start();}
+        catch(\RuntimeException $e){return redirect()->route('admin')->withErrors(['queue'=>$e->getMessage()]);}
+        return redirect()->route('admin')->with('status',match($state){
+            'empty'=>'No hay trabajos pendientes en la cola.',
+            'running'=>'El trabajador ya está activo. Revisa el avance de las extracciones.',
+            'starting'=>'Ya se está iniciando el trabajador. Revisa el avance en unos segundos.',
+            default=>'Trabajador iniciado. Los trabajos pendientes se procesarán y verás su avance aquí.',
+        });
+    }
     public function progress() {
         $data=$this->dashboardData();
         return response()->json(['html'=>view('admin-live',$data)->render(),'active_runs'=>$data['runs']->whereIn('status',['queued','running'])->count()])->header('Cache-Control','no-store, private');

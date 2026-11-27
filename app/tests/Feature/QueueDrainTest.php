@@ -41,4 +41,12 @@ class QueueDrainTest extends TestCase {
     public function test_invalid_duration_does_not_start_a_worker(): void {
         foreach(['0','-1','3601','invalid'] as $value)$this->artisan('queue:drain',['--seconds'=>$value])->assertFailed();
     }
+    public function test_start_confirmation_is_written_by_the_worker_and_tokens_are_validated(): void {
+        Artisan::command('queue:work {--stop-when-empty} {--max-time=} {--sleep=} {--tries=} {--timeout=} {--memory=}',fn()=>0);
+        $token=str_repeat('a',32);
+        $this->artisan('queue:drain',['--started-token'=>$token])->assertSuccessful();
+        $state=json_decode(file_get_contents(storage_path('framework/queue-worker-start.json')),true);
+        $this->assertSame($token,$state['token']);$this->assertNotEmpty($state['started_at']);
+        $this->artisan('queue:drain',['--started-token'=>'../not-valid'])->assertFailed();
+    }
 }
