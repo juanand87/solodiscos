@@ -49,6 +49,8 @@ La base es `solodiscos` en `127.0.0.1:3306`, usuario `root`, sin contraseña, se
 
 El directorio público del servidor debe ser `app/public`. El `.htaccess` de la raíz impide que Apache exponga código, dependencias o archivos de configuración; para esta instalación abre el puerto 8000 indicado. No uses la raíz del proyecto como directorio público en producción.
 
+En producción, con `APP_URL` configurado en HTTPS, las peticiones HTTP se redirigen a esa dirección antes de iniciar la sesión y verificar CSRF. Esto evita el error 419 al abrir `/login` por HTTP con `SESSION_SECURE_COOKIE=true`. El servidor debe reconocer correctamente las conexiones HTTPS; la instalación local por HTTP se mantiene accesible. La clave `APP_KEY` y los datos de `.env` se conservan al actualizar el código.
+
 ## Ejecutar por separado
 
 Desde `app/`, en tres terminales:
