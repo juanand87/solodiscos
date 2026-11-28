@@ -1,0 +1,295 @@
+/* Phone layouts. Keep desktop rules and all catalogue/calculation behaviour intact. */
+@media (max-width:640px) {
+  body {font-size:14px;line-height:1.45}
+  body main, body.storefront main {padding:16px 12px 32px;min-width:0}
+  body h1 {font-size:28px;letter-spacing:-.8px;overflow-wrap:anywhere}
+  body h2 {font-size:20px}
+  body .panel {padding:14px;margin-bottom:14px;border-radius:12px;min-width:0}
+  body .heading {gap:10px;margin-bottom:16px}
+  body .heading h1 {margin:6px 0 8px}
+  body .heading p {font-size:13px;margin:6px 0}
+  body .section-heading {gap:8px}
+  body .section-heading h2 {margin:0 0 8px}
+  body .eyebrow {font-size:10px;letter-spacing:1px}
+  body .button, body.storefront .button {min-height:44px;padding:10px 14px;font-size:13px;white-space:normal;text-align:center}
+  body input:not([type=checkbox]):not([type=radio]):not([type=hidden]), body select, body textarea {font-size:16px;max-width:100%}
+  body .announcement {height:22px;font-size:10px;letter-spacing:0}
+  body .announcement span {display:none}
+  body .site-header {height:auto;min-height:0;padding:9px 12px 0;gap:5px;flex-wrap:wrap;align-items:center}
+  body .site-header .brand {gap:4px}
+  body .site-header .brand .disc {width:28px;height:28px;margin-right:3px}
+  body .site-header .brand .disc:after {inset:10px}
+  body .site-header .wordmark {font-size:25px}
+  body .site-header .main-nav {display:flex;flex:1 0 100%;width:100%;max-width:100%;margin:0;height:auto;gap:5px;flex-wrap:nowrap;justify-content:flex-start;overflow-x:auto;overscroll-behavior-x:contain;scrollbar-width:none;padding:0 0 4px}
+  body .site-header .main-nav::-webkit-scrollbar {display:none}
+  body.storefront .site-header {padding-bottom:0}
+  body .site-header .main-nav a {height:42px;min-height:42px;padding:0 7px;font-size:11px;flex:0 0 auto;white-space:nowrap;border-radius:7px}
+  body .main-nav a.nav-current:after {bottom:2px}
+  body .site-header .account-nav {flex:1 0 100%;flex-wrap:nowrap;overflow-x:auto;max-width:100%;gap:12px;padding:3px 0 7px}
+  body.workspace .site-header .main-nav {display:none}
+  body.workspace .site-header {padding-bottom:6px}
+  body .site-header .account-nav {scrollbar-width:none}
+  body .site-header .account-nav::-webkit-scrollbar {display:none}
+  body .account-nav a, body .account-nav button {white-space:nowrap;min-height:40px;display:inline-flex;align-items:center}
+  body .pagination {gap:10px;margin-top:18px;font-size:12px}
+  body .pagination a {min-height:44px;display:inline-flex;align-items:center;padding:8px 12px}
+  body .notice, body .errors {padding:12px;margin-bottom:14px;font-size:13px}
+
+  /* The search and catalogue reach the screen sooner. */
+  body.storefront .music-hero {height:270px;border-radius:10px}
+  body.storefront .hero-copy {padding:18px 18px 52px;max-width:100%}
+  body.storefront .hero-copy h1, body.storefront .hero-copy h2 {font-size:30px;line-height:1.07;letter-spacing:-1px;margin:10px 0}
+  body.storefront .hero-copy p {font-size:12px;line-height:1.4;margin:0 0 12px}
+  body .hero-kicker {font-size:9px;letter-spacing:1px}
+  body .hero-actions {gap:8px;flex-wrap:wrap}
+  body.storefront .hero-actions .button {min-height:40px;padding:9px 13px;font-size:12px}
+  body .hero-actions .hero-text-link {display:none}
+  body .cd-scene, body .cover-wall {opacity:.18;pointer-events:none}
+  body .carousel-toolbar {left:12px;right:12px;bottom:8px;gap:6px}
+  body .carousel-controls {gap:3px}
+  body .carousel-controls button {min-height:36px;padding:6px 8px;font-size:10px}
+  body.storefront #buscar.music-search {display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px!important;padding:10px;margin:12px 0 0!important}
+  body.storefront .music-search .search-input-wrap {grid-column:1/-1;min-width:0;min-height:44px;width:100%;padding:0 10px;gap:8px}
+  body.storefront .music-search .search-input-wrap input {min-height:44px;padding:8px 0;font-size:16px}
+  body.storefront .music-search .search-select {min-width:0;max-width:100%;margin:0;padding:3px 7px;border-left:0;flex:auto}
+  body.storefront .search-select>span {font-size:9px;letter-spacing:.6px}
+  body.storefront .music-search .search-select select {min-height:30px;padding-top:2px;padding-bottom:2px;font-size:16px}
+  body.storefront .music-search>.button {grid-column:1/-1;width:100%;min-width:0;margin:0}
+  body .store-strip {grid-template-columns:minmax(0,1fr);gap:6px;padding:8px 0}
+  body .store-strip-heading {gap:8px;flex-direction:row;align-items:center;justify-content:space-between;min-width:0}
+  body .store-strip .store-strip-caption {font-size:8px;line-height:1.5;white-space:normal;width:auto}
+  body .store-strip-caption br {display:block}
+  body .store-strip-caption strong {margin-left:0}
+  body .store-strip .logo-carousel-controls {gap:3px;flex-wrap:nowrap;flex-shrink:0}
+  body .store-strip .logo-carousel-controls button {width:30px;height:30px;min-height:30px;font-size:20px}
+  body .store-strip .logo-carousel-controls .logo-carousel-pause {width:auto;min-width:62px;min-height:30px;font-size:10px;padding:5px}
+  body .store-strip .store-strip-logos {gap:12px;padding:4px 0}
+  body .store-strip-item {flex-basis:94px;min-width:94px;height:40px}
+  body .store-strip-item img {width:88px;height:34px}
+  body .store-strip-controls {gap:4px;flex-wrap:wrap}
+  body .store-strip-controls button {min-height:32px}
+  body .catalog-section {padding-top:18px}
+  body .catalog-heading {gap:12px;margin-bottom:12px;align-items:stretch;flex-direction:column}
+  body.storefront .catalog-heading h2 {font-size:23px;margin:4px 0}
+  body .catalog-heading .eyebrow {font-size:9px}
+  body .catalog-tools {width:100%;max-width:100%;gap:8px;justify-content:flex-start}
+  body .format-chips {width:100%;gap:4px;padding:3px;justify-content:space-between}
+  body .format-chip {flex:1;min-width:0;min-height:40px;padding:7px 10px;font-size:13px}
+  body .catalog-display-options {width:100%;gap:8px;display:grid;grid-template-columns:minmax(0,1.3fr) minmax(0,1fr)}
+  body .catalog-display-options label {min-width:0;font-size:10px}
+  body .catalog-tools .catalog-display-options select, body .catalog-tools .catalog-display-options label:last-of-type select {width:100%;min-height:40px;font-size:16px;padding:8px 26px 8px 8px}
+  body.storefront .album-grid {grid-template-columns:repeat(2,minmax(0,1fr));gap:12px 9px}
+  body.storefront .album-card .cover {padding:6px}
+  body.storefront .album-card>div.card-info {padding:9px 9px 0}
+  body.storefront .album-card h3 {font-size:14px;line-height:1.3;min-height:36px;margin:4px 0 7px}
+  body .card-artist {font-size:9px;letter-spacing:.6px}
+  body .cover-format {left:7px;top:7px;padding:2px 5px;font-size:9px}
+  body .cover-action {display:none}
+  body .card-price strong {font-size:16px}
+  body .card-bottom {font-size:10px;padding:8px 0;margin-top:7px;gap:5px}
+  body .catalog-drop-percent {font-size:10px;line-height:1.3}
+  body .catalog-intro {padding:0 0 8px}
+  body .catalog-intro h1 {font-size:28px;margin:5px 0 8px}
+  body .format-banners {gap:12px;margin:24px 0}
+  body .format-banner {min-height:180px}
+  body .how-it-works {gap:14px;padding:20px 0}
+  body .site-footer {padding:24px 14px 18px}
+  body .footer-inner {gap:18px}
+  body .footer-inner h3 {font-size:15px;margin:0 0 8px}
+  body .footer-inner p {font-size:13px;margin:8px 0}
+  body .footer-policies {gap:6px 14px;padding:16px 0}
+  body .footer-policies a {min-height:36px;display:inline-flex;align-items:center;font-size:12px}
+  body .footer-bottom {gap:5px;padding-top:12px;font-size:11px}
+
+  /* One compact heading and one clear seller row per offer. */
+  body .catalog-back-button {min-height:44px;font-size:13px;padding:9px 14px;margin:0 0 14px}
+  body.storefront .publication-heading {display:grid;grid-template-columns:88px minmax(0,1fr);gap:13px;align-items:start;padding:14px;text-align:left}
+  body.storefront .publication-heading .format-tabs {justify-content:flex-start;margin-top:7px}
+  body.storefront .publication-cover {width:88px;height:88px}
+  body.storefront .publication-heading>div {min-width:0}
+  body.storefront .publication-heading h1 {font-size:22px;line-height:1.15;letter-spacing:-.6px;margin:5px 0 9px}
+  body.storefront .publication-heading p {font-size:12px;line-height:1.4;margin:7px 0}
+  body.storefront .publication-heading .price {font-size:20px;display:block}
+  body .publication-heading .tag {padding:4px 8px}
+  body.storefront .offer-row {display:grid;grid-template-columns:44px minmax(0,1fr);gap:8px 10px;padding:14px 0;min-width:0}
+  body.storefront .offer-row>img {width:44px;height:44px;object-fit:contain;border-radius:5px}
+  body.storefront .offer-info {min-width:0}
+  body.storefront .offer-row>div:last-child {grid-column:1/-1;width:100%;display:flex;flex-wrap:wrap;align-items:center;gap:6px 10px}
+  body.storefront .offer-row .price {font-size:21px}
+  body.storefront .offer-row .button {margin:0 0 0 auto;min-height:44px;flex:0 0 auto}
+  body.storefront .offer-row>div:last-child small {font-size:10px;margin:0;order:0;width:auto}
+  body.storefront .offer-row .offer-info {grid-column:2}
+  body.storefront .offer-row:not(:has(>img)) .offer-info {grid-column:1/-1}
+  body .offer-info>p {font-size:12px;line-height:1.4;margin:5px 0}
+  body .seller {gap:7px;min-height:30px}
+  body .seller-label {flex-basis:auto;font-size:10px}
+  body .seller strong {font-size:13px}
+  body .seller .store-logo {width:42px;height:26px}
+  body .offer-info summary {min-height:36px;display:flex;align-items:center;font-size:12px;margin-top:4px}
+  body .offer-info .description {font-size:13px}
+
+  /* Discounts retain cover, price and CTA without oversized gaps. */
+  body .discount-filters, body .ranking-filters, body .portal-filters, body .statistics-filters {display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px;padding:12px;align-items:end}
+  body .discount-filters label, body .ranking-filters label, body .portal-filters label, body .statistics-filters label {min-width:0;font-size:11px;margin-bottom:0!important}
+  body .discount-filters input, body .discount-filters select, body .ranking-filters select, body .portal-filters input, body .portal-filters select, body .statistics-filters input, body .statistics-filters select {min-height:42px;padding:8px 25px 8px 8px;margin-top:4px;font-size:16px}
+  body .discount-filters>.button {width:100%;grid-column:auto}
+  body .ranking-filters>.button {width:100%;grid-column:1/-1}
+  body .discount-filters {grid-template-columns:repeat(6,minmax(0,1fr))}
+  body .discount-filters>label {grid-column:span 3}
+  body .discount-filters>label:last-of-type {grid-column:span 4}
+  body .discount-filters>.button {grid-column:span 2;padding-left:6px;padding-right:6px}
+  body .discount-grid {gap:14px}
+  body.storefront .discount-card {grid-template-columns:88px minmax(0,1fr);padding:13px;gap:10px 13px;border-radius:14px}
+  body .discount-cover {border-radius:8px}
+  body.storefront .discount-info h2 {font-size:20px;line-height:1.15;margin:4px 0 6px}
+  body .discount-artist {font-size:10px;letter-spacing:.5px}
+  body.storefront .discount-format {font-size:11px;margin:0 0 7px}
+  body .discount-seller {font-size:12px;gap:7px}
+  body .discount-seller img {width:25px;height:25px}
+  body .discount-price-line {margin-top:9px;gap:7px}
+  body .discount-price-line>strong {font-size:29px}
+  body .discount-price-line>s {font-size:17px}
+  body .discount-card-footer {gap:12px}
+  body .discount-reduction {font-size:23px;gap:6px}
+  body .discount-trend {width:28px;height:30px}
+  body .discount-trend svg {width:22px;height:22px}
+  body.storefront .discount-offer-button {min-height:44px;font-size:12px;padding:9px 10px;gap:6px;border-radius:9px}
+  body .discount-history {padding-top:7px}
+  body .discount-history summary {min-height:36px;display:flex;align-items:center;margin:0;font-size:12px}
+
+  /* Ranking cards preserve all four values without a wide table. */
+  body .recommendation-heading h1 {font-size:28px}
+  body .recommendation-note {font-size:12px;line-height:1.5;margin:14px 0}
+  body .recommendation-panel .table-wrap {overflow:visible}
+  body .recommendation-panel table {display:block;width:100%;min-width:0}
+  body .recommendation-panel thead {position:absolute;width:1px;height:1px;overflow:hidden;clip-path:inset(50%)}
+  body .recommendation-panel tbody {display:block}
+  body .recommendation-panel tbody tr {display:grid;grid-template-columns:minmax(0,1fr) auto;align-items:center;gap:6px 12px;padding:12px 0;border-bottom:1px solid #e4e8e1}
+  body .recommendation-panel td {display:block;min-width:0;padding:0;border:0;white-space:normal;font-size:13px}
+  body .recommendation-panel td:first-child {display:flex;align-items:center;gap:7px}
+  body .recommendation-panel td:nth-child(2) {text-align:right}
+  body .recommendation-panel td[data-label]:before {content:attr(data-label);display:block;font-size:10px;line-height:1.3;font-weight:400;color:#657188;margin:4px 0}
+  body .recommendation-panel .ranking-store {gap:6px;font-size:12px;min-width:0;flex-wrap:nowrap}
+  body .recommendation-panel .ranking-store img {width:30px;height:24px}
+  body .ranking-position {width:24px;height:24px;min-width:24px;margin:0;font-size:11px}
+  body .rating-track {font-size:17px;letter-spacing:0}
+  body .price-rating {min-height:40px;padding:5px 0}
+  body .rating-tooltip {position:absolute;right:0;left:auto;transform:none;width:min(230px,65vw);font-size:12px}
+  body .sample-count {min-height:36px;display:inline-flex;align-items:center}
+  body .store-logo-track {gap:10px;padding:10px 0}
+  body .store-logo-slide {flex-basis:120px;height:103px;padding:10px;gap:8px}
+  body .store-logo-slide img {width:94px;height:42px;flex-basis:42px}
+  body .store-logo-carousel .section-heading {flex-direction:row;align-items:center}
+  body .store-logo-carousel h2 {font-size:18px;margin:0}
+  body .logo-carousel-controls {gap:5px}
+
+  /* Compact comparison cards with readable seller actions. */
+  body.storefront .comparison-list {gap:16px;margin:16px 0;padding:0}
+  body.storefront .comparison-list .comparison-heading {grid-template-columns:78px minmax(0,1fr);gap:16px;padding:14px}
+  body.storefront .comparison-list .comparison-cover {width:78px;height:88px}
+  body.storefront .comparison-list .comparison-cover img {height:78px;border-width:3px}
+  body .comparison-cover:before {width:70px;height:70px;right:-10px}
+  body.storefront .comparison-list .comparison-summary h2 {font-size:20px;margin:5px 0 8px}
+  body.storefront .comparison-list .comparison-meta {gap:5px;margin-bottom:8px;font-size:11px}
+  body.storefront .comparison-list .comparison-format, body.storefront .comparison-list .comparison-condition {padding:3px 6px;font-size:10px;border-radius:5px}
+  body.storefront .comparison-list .comparison-summary .comparison-saving {font-size:11px;padding:4px 7px;margin-bottom:5px;border-radius:6px}
+  body.storefront .comparison-list .comparison-from {font-size:12px;gap:6px;margin-top:5px}
+  body.storefront .comparison-list .comparison-from strong {font-size:27px}
+  body .comparison-options {padding:12px}
+  body.storefront .comparison-options-label {font-size:16px;gap:8px;padding:0 0 10px}
+  body .comparison-cart {width:30px;height:30px;flex-basis:30px}
+  body .comparison-cart svg {width:20px;height:20px}
+  body.storefront .comparison-list .comparison-store, body.storefront .comparison-list .comparison-store:last-child {grid-template-columns:minmax(0,1fr) auto auto;gap:6px 8px;padding:10px 7px}
+  body.storefront .comparison-list .comparison-seller {gap:7px;grid-row:auto}
+  body .comparison-store-logo {width:30px;height:32px;flex-basis:30px;padding:3px}
+  body.storefront .comparison-list .comparison-seller strong {font-size:13px}
+  body.storefront .comparison-list .comparison-seller small {font-size:10px;margin-top:3px}
+  body.storefront .comparison-list .comparison-price {font-size:17px;text-align:right}
+  body.storefront .comparison-list .comparison-visit {grid-column:3;min-height:40px;font-size:11px;padding:6px 10px;justify-self:end}
+  body .comparison-all {padding:9px 0 0;gap:6px}
+  body .comparison-all a {min-height:36px;display:inline-flex;align-items:center}
+
+  /* Merchant portal, statistics and long administration forms. */
+  body .portal-shell .heading h1 {font-size:27px}
+  body .portal-shell .heading p {margin:4px 0}
+  body .portal-nav {flex-wrap:nowrap;overflow-x:auto;max-width:100%;gap:3px;padding:6px;margin-bottom:14px;scrollbar-width:none}
+  body .portal-nav::-webkit-scrollbar {display:none}
+  body .portal-nav a, body .portal-nav button {flex:0 0 auto;min-height:40px;display:inline-flex;align-items:center;font-size:12px;white-space:nowrap;padding:7px 9px}
+  body .portal-nav form {flex:0 0 auto}
+  body .portal-shell .portal-cards {gap:8px;margin-bottom:14px}
+  body .portal-cards .panel {padding:12px;gap:5px}
+  body .portal-cards span {font-size:12px}
+  body .portal-cards strong {font-size:26px}
+  body .portal-shell .portal-auth {padding:16px}
+  body .portal-shell form label {font-size:12px;margin-bottom:12px}
+  body .portal-shell .portal-catalog-row {padding:10px;gap:4px 9px}
+  body .portal-shell .portal-catalog-actions {min-height:40px}
+  body .portal-shell .portal-catalog-actions summary, body .portal-shell .portal-catalog-actions>a {min-height:40px;display:inline-flex;align-items:center}
+  body .portal-shell .portal-catalog-more a {min-height:40px}
+  body .portal-shell .portal-price-summary {padding:13px;gap:12px}
+  body .portal-shell .portal-price-cover {width:72px;height:72px}
+  body .portal-shell .portal-price-info h2 {font-size:18px;margin:4px 0 7px}
+  body .portal-shell .portal-price-info p {margin:6px 0}
+  body .portal-shell .portal-own-price strong {font-size:23px}
+  body .portal-shell .portal-price-competitors {padding:10px 12px}
+  body .portal-shell .portal-competitor {grid-template-columns:27px minmax(0,1fr) auto auto;gap:5px 7px;padding:8px 3px}
+  body .portal-shell .portal-competitor-logo {width:27px;height:27px}
+  body .portal-shell .portal-competitor-price {font-size:15px}
+  body .portal-shell .portal-competitor-name strong {font-size:12px}
+  body .portal-shell .portal-competitor-visit {grid-column:4;justify-self:end;min-height:40px;padding:7px 9px;font-size:10px}
+  body .statistics-cards {gap:8px;margin:14px 0}
+  body .statistics-cards .panel {padding:12px;gap:6px}
+  body .statistics-cards strong {font-size:26px}
+  body .statistics-cards span {font-size:12px}
+  body .statistics-filters>.check, body .statistics-filters>div {grid-column:1/-1}
+  body .statistics-filters>div {text-align:left;display:flex;gap:12px;align-items:center;flex-wrap:wrap}
+  body .engagement-dashboard {margin:18px 0}
+  body .engagement-totals {gap:8px;margin:12px 0}
+  body .engagement-totals>div {padding:12px;gap:5px}
+  body .engagement-totals strong {font-size:26px}
+  body .engagement-dashboard h3 {font-size:17px}
+  body .engagement-note {font-size:12px!important;line-height:1.5}
+  body .engagement-ranking li, body .engagement-opportunities li {padding:10px 0;gap:9px;font-size:12px}
+  body .engagement-dashboard .engagement-cover {width:38px;height:38px;min-width:38px;flex-basis:38px}
+  body .engagement-modal {padding:16px;border-radius:12px;max-height:92dvh}
+  body .engagement-modal-image {width:240px;height:auto;max-height:240px;aspect-ratio:1}
+  body .table-wrap {max-width:100%;overscroll-behavior-x:contain}
+  body td, body th {padding:12px 9px;font-size:12px}
+  body .form-grid {gap:14px;min-width:0}
+  body .condition-categories {padding:12px;min-width:0}
+  body fieldset {min-width:0}
+  body .stats {gap:8px;margin-bottom:14px;grid-template-columns:repeat(2,minmax(0,1fr))}
+  body .stats .panel {padding:12px;gap:6px;min-width:0}
+  body .stats strong {font-size:26px}
+  body.storefront .panel {padding:14px}
+  body.storefront .discount-card {padding:13px}
+  body.storefront .comparison-list .comparison-card {padding:0}
+  body.storefront .purchase-notice {font-size:12px;line-height:1.45;padding:12px;margin-bottom:16px}
+  body .cover-scan-form {gap:10px}
+  body .cover-comparison {gap:10px;margin:14px 0}
+  body .cover-comparison h3 {font-size:14px;line-height:1.3;margin:9px 0}
+  body .cover-comparison p {font-size:12px;margin:6px 0}
+  body .cover-decision fieldset {padding:12px;margin:12px 0}
+}
+@media (max-width:360px) {
+  body.storefront .music-hero {height:280px}
+  body.storefront .hero-copy h1, body.storefront .hero-copy h2 {font-size:28px}
+  body.storefront .publication-heading {grid-template-columns:72px minmax(0,1fr);gap:10px;padding:12px}
+  body.storefront .publication-cover {width:72px;height:72px}
+  body.storefront .publication-heading h1 {font-size:20px}
+  body.storefront .discount-card {grid-template-columns:72px minmax(0,1fr);gap:10px}
+  body.storefront .discount-info h2 {font-size:18px}
+  body .discount-price-line>strong {font-size:26px}
+  body .discount-reduction {font-size:20px}
+  body .discount-trend {display:none}
+  body .recommendation-panel tbody tr {column-gap:6px}
+  body .recommendation-panel .ranking-store img {width:24px}
+  body .recommendation-panel .ranking-store {font-size:11px}
+  body .rating-track {font-size:15px}
+  body.storefront .comparison-list .comparison-store, body.storefront .comparison-list .comparison-store:last-child {grid-template-columns:minmax(0,1fr) auto}
+  body.storefront .comparison-list .comparison-seller {grid-row:1/3}
+  body.storefront .comparison-list .comparison-visit {grid-column:2}
+  body .portal-shell .portal-competitor {grid-template-columns:27px minmax(0,1fr) auto}
+  body .portal-shell .portal-competitor-visit {grid-column:2/4}
+  body .statistics-filters label:has(input[type=date]), body .portal-filters label:has(input[type=date]), body .statistics-filters label:has(select[name=store_id]) {grid-column:1/-1}
+}
