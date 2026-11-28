@@ -20,7 +20,7 @@
 <p>Actívalo solo después de recibir el acuerdo formalizado por las partes. La marca administrativa no verifica una firma ni certifica el código del plugin.</p>
 <label>Referencia del documento firmado<input name="commercial_agreement_reference" maxlength="255" value="{{ old('commercial_agreement_reference',$store->commercial_agreement_reference) }}" placeholder="Notaría y folio o referencia verificable"></label>
 <label>Fecha de firma<input type="date" name="commercial_agreement_signed_at" value="{{ old('commercial_agreement_signed_at',$store->commercial_agreement_signed_at) }}"></label>
-<p>Comisión: 4% de productos pagados menos devoluciones, sin envío, IVA de los productos incluido. Versión del acuerdo: {{ config('partner-plan.version') }}.</p>
+<p>Comisión propuesta: 4% del producto derivado y pagado, después de descuentos, sin envío y con IVA de los productos incluido. Las devoluciones posteriores no reducen la comisión. Los artículos adicionales sin derivación acreditada quedan fuera. La identificación por producto está pendiente; el plugin actual informa el pedido completo y no liquida comisiones. Versión del acuerdo: {{ config('partner-plan.version') }}.</p>
 @if($store->partner_plan_requested_at)<p>La tienda solicitó formalización el {{ $store->partner_plan_requested_at }} · {{ $store->partner_plan_requested_version }}.</p>@endif
 <p>Habilita el análisis completo de oportunidades de precio únicamente cuando la tienda también tenga el plugin conectado. No activa cobros automáticos ni modifica el ranking público.</p>
 <p>Desactivar un acuerdo que estaba activo registra su término y revoca la clave de la integración.</p>

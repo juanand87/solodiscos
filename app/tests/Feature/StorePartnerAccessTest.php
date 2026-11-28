@@ -55,7 +55,7 @@ class StorePartnerAccessTest extends TestCase {
     public function test_plan_request_is_nonbinding_scoped_and_shows_legal_identity_and_source(): void {
         $account=$this->account();$other=Store::create(['name'=>'Other','url'=>'https://other.example','platform'=>'shopify','active'=>true]);
         $this->get(route('portal.plan'))->assertRedirect(route('portal.login'));
-        $this->actingAs($account,'store')->get(route('portal.plan'))->assertOk()->assertSee('4% por venta atribuida')->assertSee('76.879.846-K')->assertSee('IVA de los productos incluido')->assertSee('Borrador')->assertSee(route('portal.integration.download'));
+        $this->actingAs($account,'store')->get(route('portal.plan'))->assertOk()->assertDontSee('4% por venta atribuida')->assertDontSee('Obtén acceso a todas las oportunidades')->assertSee('76.879.846-K')->assertSee('IVA de los productos incluido')->assertSee('las devoluciones o reembolsos posteriores no reducen esa comisión')->assertSee('Todavía no identifica qué líneas del pedido')->assertSee('Borrador')->assertSee(route('portal.integration.download'));
         $this->post(route('portal.plan.request'),['store_id'=>$other->id,'commercial_agreement_active'=>1])->assertRedirect(route('portal.plan'))->assertSessionHasNoErrors();
         $this->assertNotNull($account->store->fresh()->partner_plan_requested_at);$this->assertFalse($account->store->fresh()->commercial_agreement_active);$this->assertNull($other->fresh()->partner_plan_requested_at);
     }

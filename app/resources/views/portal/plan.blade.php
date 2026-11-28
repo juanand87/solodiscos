@@ -1,8 +1,7 @@
 @extends('portal.layout')
 @section('portal-title','Plan Tienda Asociada')
 @section('portal-content')
-<section class="panel"><span class="eyebrow">PROGRAMA DE TIENDAS ASOCIADAS SOLODISCOS</span><h2>{{ $plan['commission_percent'] }}% por venta atribuida</h2><p>Liquidación mensual · Sin permanencia mínima · Código del plugin disponible para revisión.</p><p>Obtén acceso a todas las oportunidades de mejora de precios de tu tienda con el acuerdo comercial activo y el plugin conectado.</p>
-<p>Acuerdo: <strong>{{ $partnerAccess['agreement_active']?'Activo':'Sin activar' }}</strong> · Plugin: <strong>{{ $partnerAccess['plugin_connected']?'Conectado':'Sin conexión verificada' }}</strong> · Acceso: <strong>{{ $partnerAccess['full_access']?'Completo':'Muestra gratuita' }}</strong>.</p>
+<section class="panel"><span class="eyebrow">PROGRAMA DE TIENDAS ASOCIADAS SOLODISCOS</span>
 @if($store->commercial_agreement_reference)<p>Referencia de firma registrada por SoloDiscos: {{ $store->commercial_agreement_reference }} · {{ $store->commercial_agreement_signed_at }}. Este registro administrativo no verifica automáticamente la firma.</p>@endif
 @if($store->commercial_agreement_plugin_sha256)<p style="overflow-wrap:anywhere">Paquete vinculado al registro del acuerdo: SHA-256 <code>{{ $store->commercial_agreement_plugin_sha256 }}</code>.</p>@endif
 @if($store->partner_plan_requested_at)<p>Solicitud de formalización registrada: {{ $store->partner_plan_requested_at }} · versión {{ $store->partner_plan_requested_version }}.</p>@endif
