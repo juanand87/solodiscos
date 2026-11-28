@@ -13,7 +13,7 @@
         try {
             const state = JSON.parse(storage.get(catalogStateKey) || 'null');
             const requested = new URL(location.href).searchParams.get('return_to');
-            if (state && /^\/(?:\?[^\r\n#]*)?$/.test(state.url) && (!requested || requested === state.url)) {
+            if (state && /^(?:\/|\/artistas\/[a-f0-9]{16}\/[a-z0-9-]+|\/tiendas-de-discos\/[1-9][0-9]*\/[a-z0-9-]+)(?:\?[^\r\n#]*)?$/.test(state.url) && (!requested || requested === state.url)) {
                 link.href = state.url;
                 storage.set('solodiscos:restore-catalog', '1');
             }

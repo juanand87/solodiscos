@@ -1,4 +1,4 @@
-@php($seo=app(App\Services\SeoMetadata::class)->build(request(),['album'=>$album??null,'format'=>$format??null,'policy'=>$policy??null,'publications'=>$publications??null,'products'=>$products??null]))
+@php($seo=app(App\Services\SeoMetadata::class)->build(request(),['album'=>$album??null,'format'=>$format??null,'policy'=>$policy??null,'publications'=>$publications??null,'products'=>$products??null,'artistProfile'=>$artistProfile??null,'publicStore'=>$publicStore??null,'hubPath'=>$hubPath??null,'artistPath'=>$artistPath??null,'artists'=>$artists??null,'publicStores'=>$publicStores??null]))
 <title>{{ $seo['title']??trim($__env->yieldContent('title','SoloDiscos')) }}</title>
 <meta name="description" content="{{ $seo['description'] }}">
 <meta name="robots" content="{{ $seo['robots'] }}">

@@ -1,1 +1,1 @@
-<span class="ranking-store">@if($store->logo_url)<img src="{{ $store->logo_url }}" alt="" loading="lazy" referrerpolicy="no-referrer">@endif<strong>{{ $store->name }}</strong></span>
+<span class="ranking-store">@if($store->logo_url)<img src="{{ $store->logo_url }}" alt="" loading="lazy" referrerpolicy="no-referrer">@endif<strong><a href="{{ url(app(\App\Services\CatalogDiscovery::class)->storePath($store)) }}">{{ $store->name }}</a></strong></span>

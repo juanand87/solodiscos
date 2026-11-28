@@ -3,9 +3,15 @@
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\{AdminController,CatalogController,CoverController};
 Route::get('/',[CatalogController::class,'index'])->name('catalog');
+Route::get('/artistas',[\App\Http\Controllers\DiscoveryController::class,'artists'])->name('artists.index');
+Route::get('/artistas/{key}/{slug?}',[\App\Http\Controllers\DiscoveryController::class,'artist'])->where('key','[a-f0-9]{16}')->name('artists.show');
+Route::get('/tiendas-de-discos',[\App\Http\Controllers\DiscoveryController::class,'stores'])->name('public-stores.index');
+Route::get('/tiendas-de-discos/{store}/{slug?}',[\App\Http\Controllers\DiscoveryController::class,'store'])->whereNumber('store')->name('public-stores.show');
 Route::get('/sitemap.xml',[\App\Http\Controllers\SitemapController::class,'index'])->name('sitemap');
 Route::get('/sitemap-paginas.xml',[\App\Http\Controllers\SitemapController::class,'pages'])->name('sitemap.pages');
 Route::get('/sitemap-discos-{page}.xml',[\App\Http\Controllers\SitemapController::class,'albums'])->where('page','[1-9][0-9]{0,3}')->name('sitemap.albums');
+Route::get('/sitemap-artistas-{page}.xml',[\App\Http\Controllers\SitemapController::class,'artists'])->where('page','[1-9][0-9]{0,3}')->name('sitemap.artists');
+Route::get('/sitemap-tiendas.xml',[\App\Http\Controllers\SitemapController::class,'stores'])->name('sitemap.stores');
 Route::get('/ir/{offer}',\App\Http\Controllers\OfferVisitController::class)->whereNumber('offer')->name('offers.visit');
 Route::get('/descuentos',[\App\Http\Controllers\DiscountController::class,'index'])->name('discounts');
 Route::get('/descuentos/{offer}',[\App\Http\Controllers\DiscountController::class,'history'])->whereNumber('offer')->name('discounts.history');

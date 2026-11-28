@@ -43,7 +43,7 @@ class SeoTest extends TestCase {
         config(['app.url'=>'https://www.solodiscos.cl']);Cache::flush();$offer=$this->offer();$clone=$offer->replicate();$clone->external_id=uniqid();$clone->save();
         $other=$this->offer('vinyl');$other->update(['availability'=>'out_of_stock']);
         $paused=$this->offer();$store=$offer->store->replicate();$store->url='https://paused.example';$store->active=false;$store->save();$paused->update(['store_id'=>$store->id]);
-        $index=$this->get('/sitemap.xml')->assertOk()->assertHeader('Content-Type','application/xml; charset=UTF-8');$xml=simplexml_load_string($index->getContent());$this->assertSame('sitemapindex',$xml->getName());$this->assertCount(2,$xml->sitemap);
+        $index=$this->get('/sitemap.xml')->assertOk()->assertHeader('Content-Type','application/xml; charset=UTF-8');$xml=simplexml_load_string($index->getContent());$this->assertSame('sitemapindex',$xml->getName());$this->assertCount(4,$xml->sitemap);
         $urls=$this->get('/sitemap-discos-1.xml')->assertOk();$xml=simplexml_load_string($urls->getContent());$this->assertCount(1,$xml->url);$this->assertSame('https://www.solodiscos.cl/album/'.$offer->album_id.'/cd',(string)$xml->url[0]->loc);
         $pages=$this->get('/sitemap-paginas.xml')->assertOk();$this->assertNotFalse(simplexml_load_string($pages->getContent()));$pages->assertDontSee('/admin')->assertDontSee('https://www.solodiscos.cl/tiendas/');
         $this->get('/sitemap-discos-2.xml')->assertNotFound();$this->get('/sitemap-discos-0.xml')->assertNotFound();
@@ -53,7 +53,7 @@ class SeoTest extends TestCase {
         for($i=100;$i<=1100;$i++){$albums[]=['id'=>$i,'artist'=>'Artist','title'=>'Album '.$i,'match_key'=>'shard-'.$i];$offers[]=['store_id'=>$offer->store_id,'album_id'=>$i,'external_id'=>'shard-'.$i,'title'=>'Album '.$i,'format'=>'vinyl','condition'=>'new','currency'=>'CLP','price'=>10000,'availability'=>'in_stock','checked_at'=>now(),'url'=>'https://shop.example/'.$i];}
         foreach(array_chunk($albums,300) as $chunk)DB::table('albums')->insert($chunk);
         foreach(array_chunk($offers,300) as $chunk)DB::table('offers')->insert($chunk);
-        Cache::flush();$index=simplexml_load_string($this->get('/sitemap.xml')->assertOk()->getContent());$this->assertCount(3,$index->sitemap);
+        Cache::flush();$index=simplexml_load_string($this->get('/sitemap.xml')->assertOk()->getContent());$this->assertCount(5,$index->sitemap);
         $one=simplexml_load_string($this->get('/sitemap-discos-1.xml')->assertOk()->getContent());$two=simplexml_load_string($this->get('/sitemap-discos-2.xml')->assertOk()->getContent());
         $this->assertCount(1000,$one->url);$this->assertCount(2,$two->url);
         $urls=[];foreach([$one,$two] as $xml)foreach($xml->url as $row)$urls[]=(string)$row->loc;

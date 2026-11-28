@@ -11,7 +11,7 @@ class PublicPoliciesTest extends TestCase {
 
     public function test_missing_policy_configuration_does_not_break_the_public_site(): void {
         config(['policies.pages'=>null]);
-        $this->get('/')->assertOk()->assertSee('SoloDiscos no vende los discos ni recibe pagos.');
+        $this->get('/')->assertOk()->assertSee('SoloDiscos no vende los discos ni recibe el pago de tus compras.');
         $this->get('/login')->assertOk();
         $this->get('/politicas/compras')->assertNotFound();
     }
@@ -24,7 +24,7 @@ class PublicPoliciesTest extends TestCase {
         }
         $this->get('/politicas/inexistente')->assertNotFound();
         $this->get('/politicas/../.env')->assertNotFound();
-        $this->get('/')->assertOk()->assertSee(route('policies.show','compras'))->assertSee('SoloDiscos no vende los discos ni recibe pagos.');
+        $this->get('/')->assertOk()->assertSee(route('policies.show','compras'))->assertSee('SoloDiscos no vende los discos ni recibe el pago de tus compras.');
     }
 
     public function test_purchase_notice_is_visible_on_album_and_price_comparisons(): void {
@@ -34,7 +34,7 @@ class PublicPoliciesTest extends TestCase {
             $offer=Offer::create(['store_id'=>$store->id,'album_id'=>$album->id,'external_id'=>'1','title'=>'Artist - Album','format'=>'cd','condition'=>'new','currency'=>'CLP','price'=>$price,'availability'=>'in_stock','checked_at'=>now(),'url'=>$store->url.'/disc']);
         }
         foreach([route('album',[$album,'cd']),route('rankings.sample',[$store,'new'])] as $url){
-            $this->get($url)->assertOk()->assertSee('Comparas aquí. Compras en cada tienda.')->assertSee('SoloDiscos no vende los discos ni recibe pagos.')->assertSee(route('policies.show','compras'));
+            $this->get($url)->assertOk()->assertSee('Comparas aquí. Compras en cada tienda.')->assertSee('SoloDiscos no vende los discos ni recibe el pago de tus compras.')->assertSee(route('policies.show','compras'));
         }
     }
 }

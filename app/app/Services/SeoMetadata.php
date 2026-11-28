@@ -22,6 +22,35 @@ class SeoMetadata {
             if(isset($data['publications'])&&$data['publications']->isEmpty()&&($page>1||$format))$index=false;
             if($index)$canonical=self::url('/',$query);
             if($page>1)$title='Página '.$page.' · '.$title;
+        }elseif(in_array($route,['artists.index','artists.show','public-stores.index','public-stores.show'])){
+            $isArtist=str_starts_with($route,'artists.');$isDirectory=str_ends_with($route,'.index');
+            if($isDirectory){
+                $path=$isArtist?'/artistas':'/tiendas-de-discos';
+                $title=$isArtist?'Artistas en CD y vinilo: compara discos | SoloDiscos':'Tiendas de discos en Chile: CDs y vinilos | SoloDiscos';
+                $description=$isArtist?'Explora artistas con CDs y vinilos disponibles en tiendas de Chile. Encuentra sus álbumes y compara precios, condición y alternativas de compra.':'Descubre las tiendas de discos que reúne SoloDiscos. Consulta sus catálogos de CDs y vinilos y compara las alternativas de cada álbum.';
+                $index=!$r->filled('q')&&!$r->filled('format')&&!$r->filled('condition');
+                if($isArtist&&isset($data['artists'])&&$data['artists']->isEmpty())$index=false;
+                if(!$isArtist&&isset($data['publicStores'])&&$data['publicStores']->isEmpty())$index=false;
+            }else{
+                $path=$data['hubPath'];$name=$isArtist?$data['artistProfile']['name']:$data['publicStore']->name;
+                $medium=match($r->query('format')){'cd'=>'CDs','vinyl'=>'vinilos',default=>'CDs y vinilos'};
+                $suffix=': '.$medium.' | SoloDiscos';$title=Str::limit($name,72-mb_strlen($suffix),'…').$suffix;
+                $total=$data['publications']->total();
+                $description=$isArtist?'Encuentra '.$total.' discos y formatos de '.$name.' disponibles. Compara sus '.$medium.' entre tiendas de Chile y revisa precios, condición y edición.':'Explora '.$total.' discos y formatos disponibles de '.$name.'. Consulta sus '.$medium.' y compara cada álbum con las alternativas de otras tiendas en SoloDiscos.';
+                $index=!$r->filled('q')&&!$r->filled('condition')&&$data['publications']->isNotEmpty();
+                if($r->filled('format'))$query['format']=$r->query('format');
+                if(!$isArtist&&$data['publicStore']->logo_url)$image=$data['publicStore']->logo_url;
+            }
+            if($page>1){$query['page']=$page;$title='Página '.$page.' · '.$title;}
+            if($index){
+                $canonical=self::url($path,$query);$items=[];
+                foreach($data['publications']??[] as $i=>$publication)$items[]=['@type'=>'ListItem','position'=>($page-1)*25+$i+1,'name'=>$publication->album->artist.' — '.$publication->album->title.' · '.($publication->format==='cd'?'CD':'Vinilo'),'url'=>self::url('/album/'.$publication->album_id.'/'.$publication->format)];
+                $graph[]=['@type'=>'CollectionPage','@id'=>$canonical.'#collection','name'=>$title,'url'=>$canonical,'description'=>$description,'mainEntity'=>['@type'=>'ItemList','itemListElement'=>$items]];
+                $crumbs=[['@type'=>'ListItem','position'=>1,'name'=>'SoloDiscos','item'=>self::url()]];
+                if(!$isDirectory)$crumbs[]=['@type'=>'ListItem','position'=>2,'name'=>$isArtist?'Artistas':'Tiendas de discos','item'=>self::url($isArtist?'/artistas':'/tiendas-de-discos')];
+                $crumbs[]=['@type'=>'ListItem','position'=>count($crumbs)+1,'name'=>$isDirectory?($isArtist?'Artistas':'Tiendas de discos'):$name,'item'=>$canonical];
+                $graph[]=['@type'=>'BreadcrumbList','itemListElement'=>$crumbs];
+            }
         }elseif($route==='album' && ($album=$data['album']??null)){
             $format=$data['format']==='cd'?'CD':'Vinilo';$artist=preg_replace('/^\[(?:vinilo|cd)\]\s*/iu','',$album->artist);$name=trim($artist.' — '.$album->title);
             $suffix=' · '.$format.' | SoloDiscos';$title=Str::limit($name,72-mb_strlen($suffix),'…').$suffix;
@@ -31,7 +60,7 @@ class SeoMetadata {
             if($index)$canonical=self::url('/album/'.$album->id.'/'.$data['format']);
             $cover=$album->offers->firstWhere('image','!=',null)?->image;if($cover)$image=$cover;
             if($index)$graph[]=['@type'=>'MusicAlbum','@id'=>$canonical.'#album','name'=>$album->title,'description'=>$description,'url'=>$canonical,'image'=>$image];
-            if($index)$graph[]=['@type'=>'BreadcrumbList','itemListElement'=>[['@type'=>'ListItem','position'=>1,'name'=>'SoloDiscos','item'=>self::url()],['@type'=>'ListItem','position'=>2,'name'=>$name.' · '.$format,'item'=>$canonical]]];
+            if($index)$graph[]=['@type'=>'BreadcrumbList','itemListElement'=>[['@type'=>'ListItem','position'=>1,'name'=>'SoloDiscos','item'=>self::url()],['@type'=>'ListItem','position'=>2,'name'=>$artist,'item'=>self::url($data['artistPath']??app(CatalogDiscovery::class)->artistPath($album->artist))],['@type'=>'ListItem','position'=>3,'name'=>$album->title.' · '.$format,'item'=>$canonical]]];
         }elseif($route==='discounts'){
             $title='Descuentos en CDs y vinilos en Chile | SoloDiscos';$description='Descubre discos cuyo precio ha bajado desde su primer registro en SoloDiscos. Compara descuentos por tienda y consulta el historial de precios.';
             $index=!$r->filled('q')&&!$r->filled('store_id')&&!$r->filled('format')&&!$r->filled('condition')&&(!$r->filled('sort')||$r->query('sort')==='percent');
@@ -44,7 +73,7 @@ class SeoMetadata {
         }elseif($route==='policies.show'){
             $title=($data['policy']['title']??'Información').' | SoloDiscos';$description=$data['policy']['intro']??$description;$index=true;$canonical=self::url('/politicas/'.$r->route('policy'));
         }
-        $public=$r->routeIs('catalog','album','discounts','rankings','policies.show','discounts.history','rankings.*');
+        $public=$r->routeIs('catalog','album','discounts','rankings','policies.show','discounts.history','rankings.*','artists.*','public-stores.*');
         if($index){
             $graph[]=['@type'=>'Organization','@id'=>self::url().'#organization','name'=>'SoloDiscos','url'=>self::url()];
             $graph[]=['@type'=>'WebSite','@id'=>self::url().'#website','name'=>'SoloDiscos','url'=>self::url(),'inLanguage'=>'es-CL','publisher'=>['@id'=>self::url().'#organization']];

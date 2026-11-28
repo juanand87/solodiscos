@@ -26,7 +26,7 @@ class CatalogController extends Controller {
     public function show(Request $r,Album $album,?string $format=null) {
         $filters=$r->validate(['condition'=>'nullable|in:new,used,unknown','currency'=>'nullable|in:CLP','comparison'=>'nullable|boolean','return_to'=>'nullable|string|max:4096']);
         $return=$filters['return_to']??'';
-        $backUrl=preg_match('~^/(?:\?[^\r\n#]*)?(?:#catalogo)?$~D',$return)?$return:route('catalog').'#catalogo';
+        $backUrl=preg_match('~^(?:/|/artistas/[a-f0-9]{16}/[a-z0-9-]+|/tiendas-de-discos/[1-9][0-9]*/[a-z0-9-]+)(?:\?[^\r\n#]*)?(?:#catalogo)?$~D',$return)?$return:route('catalog').'#catalogo';
         $filter=function($q)use($filters){
             $q->available();
             if(!empty($filters['condition']))$q->where('condition',$filters['condition']);
@@ -40,6 +40,8 @@ class CatalogController extends Controller {
         $album->load(['offers'=>function($q)use($filter,$format){$filter($q);$q->where('format',$format)->with('store')->orderBy('price');}]);
         app(\App\Services\InitialPriceDiscounts::class)->attach($album->offers);
         app(\App\Services\EngagementTracker::class)->album($r,$album,$format);
-        return view('album',compact('album','format','formats','backUrl'));
+        $discovery=app(\App\Services\CatalogDiscovery::class);$artistProfile=$discovery->artists()[$discovery->artistKey($album->artist)]??null;
+        $artistPath=$artistProfile['path']??$discovery->artistPath($album->artist);$relatedAlbums=$discovery->related($album,$format);
+        return view('album',compact('album','format','formats','backUrl','artistPath','relatedAlbums'));
     }
 }
