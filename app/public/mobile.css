@@ -142,7 +142,7 @@
   body.storefront .album-offer.offer-best-price:has(details[open]) .condition-tag {grid-row:3}
   body.storefront .album-offer.offer-best-price:has(details[open]) details {grid-row:4}
   body.storefront .album-offer.offer-best-price:has(details[open])>.offer-buy {grid-row:1/4}
-  body.storefront .album-offer .offer-info details {grid-column:1/-1;grid-row:3;min-width:0}
+  body.storefront .album-offer .offer-info details {display:none;grid-column:1/-1;grid-row:3;min-width:0}
   body.storefront .album-offer .offer-info summary {display:list-item;min-height:36px;margin:0;padding:8px 0 4px;font-size:11px;line-height:1.5}
   body.storefront .album-offer:has(details[open]) .offer-info {display:contents}
   body.storefront .album-offer .offer-info details[open] .offer-original-title {display:block;font-size:12px;margin:8px 0;overflow-wrap:anywhere}
