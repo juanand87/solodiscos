@@ -128,7 +128,7 @@
   body .offer-info summary {min-height:36px;display:flex;align-items:center;font-size:12px;margin-top:4px}
   body .offer-info .description {font-size:13px}
   /* Keep seller information and buying controls side by side, as on desktop. */
-  body.storefront .album-offer.offer-row {grid-template-columns:32px minmax(0,1fr) 96px;gap:6px 8px;padding:13px 0;align-items:start}
+  body.storefront .album-offer.offer-row {grid-template-columns:32px minmax(0,1fr) 96px;gap:6px 8px;padding:13px 8px;align-items:start}
   body.storefront .album-offer.offer-row>img {grid-column:1;grid-row:1;width:32px;height:32px;margin-top:3px}
   body.storefront .album-offer.offer-row .offer-info {display:block;grid-column:2;grid-row:1}
   body.storefront .album-offer .seller {grid-column:2;grid-row:1;gap:5px;min-height:28px;align-content:start;align-items:center}
@@ -137,6 +137,11 @@
   body.storefront .album-offer .seller strong {font-size:12px;line-height:1.3;min-width:0;flex:1;overflow-wrap:anywhere}
   body.storefront .album-offer .offer-title {display:none}
   body.storefront .album-offer .condition-tag {grid-column:2;grid-row:2;justify-self:start;align-self:start;font-size:10px;line-height:1.3;padding:4px 6px;margin:5px 0 0;max-width:100%}
+  body.storefront .album-offer .offer-best-label {font-size:10px;padding:3px 5px;margin:4px 0 0;line-height:1.3}
+  body.storefront .album-offer:has(details[open]) .offer-best-label {grid-column:2;grid-row:2;justify-self:start;align-self:start}
+  body.storefront .album-offer.offer-best-price:has(details[open]) .condition-tag {grid-row:3}
+  body.storefront .album-offer.offer-best-price:has(details[open]) details {grid-row:4}
+  body.storefront .album-offer.offer-best-price:has(details[open])>.offer-buy {grid-row:1/4}
   body.storefront .album-offer .offer-info details {grid-column:1/-1;grid-row:3;min-width:0}
   body.storefront .album-offer .offer-info summary {display:list-item;min-height:36px;margin:0;padding:8px 0 4px;font-size:11px;line-height:1.5}
   body.storefront .album-offer:has(details[open]) .offer-info {display:contents}

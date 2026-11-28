@@ -44,6 +44,19 @@ class CatalogNavigationTest extends TestCase {
             $this->assertSame(route('catalog').'#catalogo',$response->viewData('backUrl'));
         }
     }
+    public function test_best_price_marks_all_visible_ties_and_respects_condition_filter(): void {
+        $offer=$this->catalogue();
+        foreach([['tie',10000,'new'],['higher',12000,'new'],['used',9000,'used']] as [$id,$price,$condition]){
+            $copy=$offer->replicate();$copy->external_id=$id;$copy->price=$price;$copy->condition=$condition;$copy->save();
+        }
+        $check=function($response){
+            $response->assertOk();$dom=new \DOMDocument();@$dom->loadHTML('<?xml encoding="UTF-8">'.$response->getContent());
+            $xpath=new \DOMXPath($dom);return $xpath->query('//article[contains(concat(" ",normalize-space(@class)," ")," offer-best-price ")]');
+        };
+        $all=$check($this->get(route('album',[$offer->album_id,'cd'])));$this->assertSame(1,$all->length);$this->assertStringContainsString('9.000',$all->item(0)->textContent);
+        $new=$check($this->get(route('album',[$offer->album_id,'cd','condition'=>'new'])));$this->assertSame(2,$new->length);
+        foreach($new as $row){$this->assertStringContainsString('Mejor precio',$row->textContent);$this->assertStringContainsString('10.000',$row->textContent);}
+    }
     public function test_guest_navigation_and_logo_controls_are_public_without_an_admin_button(): void {
         $this->catalogue();
         $this->get('/')->assertOk()->assertSee('Top 10 Tiendas')->assertSee('Ver tiendas anteriores')->assertSee('Pausar avance de tiendas')
